@@ -1,7 +1,5 @@
 import {useState, useEffect, useRef} from 'react'
 
-
-
 function Pomodoro() {
     //Change if the timer active or not
     const [isRunning, setIsRunning] = useState(false);
@@ -11,6 +9,8 @@ function Pomodoro() {
     const intervalRef = useRef(null);   
     //set the duration
     const [currentDuration, setCurrentDuration] = useState(10 * 60);
+    // Track active preset for styling
+    const [activePreset, setActivePreset] = useState(1); // Default to 10 min (index 1)
 
     //Formatting the timer in MM:SS
     const formatTime = (seconds) => {
@@ -42,26 +42,26 @@ function Pomodoro() {
         setIsRunning(!isRunning);
     }
 
-
     // reset timer
     const resetTimer = () => {
         setIsRunning(false);
-        setTimeLeft(currentDuration)
+        setTimeLeft(currentDuration);
     }
 
     //A list of preset times
     const presetTime = [
-        {name: '5 min', seconds: 5 * 60},
-        {name: '10 min', seconds: 10 * 60},
-        {name: '30 min', seconds: 30 * 60},
-        {name: '45 min', seconds: 45 * 60},
+        {name: '5m', seconds: 5 * 60},
+        {name: '10m', seconds: 10 * 60},
+        {name: '30m', seconds: 30 * 60},
+        {name: '45m', seconds: 45 * 60},
     ];
 
     //presetTimer function
-    const selectPreset = (seconds) => {
+    const selectPreset = (seconds, index) => {
         setIsRunning(false);
         setTimeLeft(seconds);
         setCurrentDuration(seconds);
+        setActivePreset(index);
     }
 
     return (
@@ -73,18 +73,23 @@ function Pomodoro() {
                 </div>  
 
                 <div className="controls">
-                    <button onClick={toggleTimer}>
-                        {isRunning ? 'Pause' : 'Start'}
+                    <button 
+                        onClick={toggleTimer}
+                        className={isRunning ? 'pause' : ''}
+                    >
+                        {/* Icons will be handled by CSS pseudo-elements */}
                     </button>
                     <button onClick={resetTimer}>
-                        Reset
+                        {/* Reset icon handled by CSS */}
                     </button>
                 </div> 
+                
                 <div className="presets">
                     {presetTime.map((preset, index) => (
-                        <button className='button-btn'
-                        key={index}
-                        onClick={() => selectPreset(preset.seconds)}
+                        <button 
+                            className={`preset-btn ${activePreset === index ? 'active' : ''}`}
+                            key={index}
+                            onClick={() => selectPreset(preset.seconds, index)}
                         >
                             {preset.name}
                         </button>
