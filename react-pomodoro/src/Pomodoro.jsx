@@ -11,6 +11,8 @@ function Pomodoro() {
     const [currentDuration, setCurrentDuration] = useState(10 * 60);
     // Track active preset for styling
     const [activePreset, setActivePreset] = useState(1); // Default to 10 min (index 1)
+    //Show custom time menu
+    const [showTimeMenu, setTimeMenu] = useState(false)
 
     //Formatting the timer in MM:SS
     const formatTime = (seconds) => {
@@ -48,6 +50,27 @@ function Pomodoro() {
         setTimeLeft(currentDuration);
     }
 
+    // double cliking on timer to show menu
+    const doubleClickOnTimer = () => {
+        //Don't allow double click if timer is running
+        if (isRunning) return;
+        setTimeMenu(true);
+    }
+
+    //Close timer menu
+    const closeTimeMenu = () => {
+        setTimeMenu(false);
+    }
+
+    //Selecting a custom time
+    const selectCustomTime = () => {
+        setIsRunning(false);
+        setTimeLeft(seconds);
+        setCurrentDuration(seconds);
+        setActivePreset(-1);
+        setTimeMenu(false);
+    }
+
     //A list of preset times
     const presetTime = [
         {name: '5m', seconds: 5 * 60},
@@ -56,19 +79,35 @@ function Pomodoro() {
         {name: '45m', seconds: 45 * 60},
     ];
 
+    //list of custom time option
+    const customTimeOptions = [
+        { label: '25 min', seconds: 1 * 60 },
+        { label: '30 min', seconds: 2 * 60 },
+        { label: '45 min', seconds: 3 * 60 },
+        { label: '50 min', seconds: 5 * 60 },
+        { label: '1 hour', seconds: 60 * 60 },
+        { label: '1.5 hours', seconds: 90 * 60 },
+        { label: '2 hours', seconds: 120 * 60 },
+        { label: '3 hours', seconds: 180 * 60 },
+        { label: '4 hours', seconds: 240 * 60 },
+    ];
+
     //presetTimer function
     const selectPreset = (seconds, index) => {
         setIsRunning(false);
         setTimeLeft(seconds);
         setCurrentDuration(seconds);
         setActivePreset(index);
+        setTimeMenu(false);
     }
 
     return (
         <> 
         <div className="pomodoro-container">
                 <h1>Pomodoro+</h1> 
-                <div className="liveTimer-container">
+                <div className={`liveTimer-container ${!isRunning ? 'double-clickable' : ''}`}
+                    onDoubleClick={doubleClickOnTimer}
+                >
                     <p>{formatTime(timeLeft)}</p>
                 </div>  
 
