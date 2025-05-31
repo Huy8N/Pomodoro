@@ -46,7 +46,7 @@ function Pomodoro() {
     // reset timer
     const resetTimer = () => {
         setIsRunning(false);
-        setCurrentDuration(currentDuration)
+        setTimeLeft(currentDuration)
     }
 
     //A list of preset times
