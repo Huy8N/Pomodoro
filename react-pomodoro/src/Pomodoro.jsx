@@ -8,13 +8,13 @@ function Pomodoro() {
     // Keep track of time left
     const [timeLeft, setTimeLeft] = useState(10 * 60)
     //change our interval with rerendering
-    const intervalRef = useRef(NULL);
+    const intervalRef = useRef(null);
 
     //Formatting the timer in MM:SS
-    const fortmatTime = (seconds) => {
-        const mintues = Math.floor(seconds / 60);
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
         const secs = seconds % 60;
-        return `${mintues.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
     //Update the timer
@@ -33,7 +33,7 @@ function Pomodoro() {
             clearInterval(intervalRef.current);
         }
         return () => clearInterval(intervalRef.current);
-    }, [isRunning, TimeRanges]);
+    }, [isRunning, timeLeft]);
 
     const toggleTimer = () => {
         setIsRunning(!isRunning);
@@ -49,8 +49,17 @@ function Pomodoro() {
         <div className="pomodoro-container">
                 <h1>Pomodoro+</h1> 
                 <div className="liveTimer-container">
-                    <p>{fortmatTime(timeLeft)}</p>
-                </div>   
+                    <p>{formatTime(timeLeft)}</p>
+                </div>  
+
+                <div className="controls">
+                    <button onClick={toggleTimer}>
+                        {isRunning ? 'Pause' : 'Start'}
+                    </button>
+                    <button onClick={resetTimer}>
+                        Reset
+                    </button>
+                </div> 
         </div>       
         </>
     )
