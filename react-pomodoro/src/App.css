@@ -1,6 +1,6 @@
 .pomodoro-container {
     width: 320px;
-    height: 420;
+    height: 520px;
     border-radius: 20px;
     background: #2E2E2E;
     display: flex;
@@ -8,6 +8,7 @@
     align-items: center;
     padding: 30px 20px;
     gap: 20px;
+    position: relative;
 }
 
 .pomodoro-container h1 {
@@ -35,6 +36,17 @@
         inset 0 0 20px rgba(0, 0, 0, 0.3),
         0 4px 15px rgba(0, 0, 0, 0.4);
     margin: 20px 0;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.liveTimer-container.double-clickable {
+    cursor: pointer;
+}
+
+.liveTimer-container.double-clickable:hover {
+    background: #505050;
+    transform: scale(1.02);
 }
 
 .liveTimer-container p {
@@ -47,6 +59,102 @@
     text-align: center;
     margin: 0;
     letter-spacing: 2px;
+}
+
+.double-click-hint {
+    font-family: Poppins, sans-serif;
+    font-size: 10px;
+    color: #AAAAAA;
+    text-align: center;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.liveTimer-container.double-clickable:hover .double-click-hint {
+    opacity: 1;
+}
+
+/* Time Menu Styles */
+.time-menu-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.time-menu {
+    background: #3A3A3A;
+    border-radius: 15px;
+    padding: 20px;
+    width: 280px;
+    max-height: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.time-menu h3 {
+    color: #FFFFFF;
+    font-family: Poppins, sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    margin: 0 0 15px 0;
+}
+
+.time-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 15px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.time-option {
+    background: #4A4A4A;
+    border: none;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-family: Poppins, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.time-option:hover {
+    background: #5A5A5A;
+    transform: translateY(-1px);
+}
+
+.time-option:active {
+    transform: translateY(0);
+}
+
+.close-menu {
+    width: 100%;
+    background: #666666;
+    border: none;
+    border-radius: 8px;
+    color: #FFFFFF;
+    font-family: Poppins, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-menu:hover {
+    background: #777777;
 }
 
 .controls {
@@ -82,7 +190,7 @@
 }
 
 /* Play button triangle */
-.controls button:first-child::before {
+.controls button:first-child:not(.pause)::before {
     content: '';
     width: 0;
     height: 0;
@@ -92,7 +200,7 @@
     margin-left: 3px;
 }
 
-/* Pause button bars - only show when running */
+/* Pause button bars */
 .controls button:first-child.pause::before {
     content: '';
     width: 4px;

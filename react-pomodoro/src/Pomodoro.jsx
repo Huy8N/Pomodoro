@@ -16,9 +16,15 @@ function Pomodoro() {
 
     //Formatting the timer in MM:SS
     const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        if (seconds >= 3600) {
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const hours = Math.floor(seconds / 3600);
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        } else {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
     }
 
     //Update the timer
@@ -63,7 +69,7 @@ function Pomodoro() {
     }
 
     //Selecting a custom time
-    const selectCustomTime = () => {
+    const selectCustomTime = (seconds) => {
         setIsRunning(false);
         setTimeLeft(seconds);
         setCurrentDuration(seconds);
@@ -81,10 +87,10 @@ function Pomodoro() {
 
     //list of custom time option
     const customTimeOptions = [
-        { label: '25 min', seconds: 1 * 60 },
-        { label: '30 min', seconds: 2 * 60 },
-        { label: '45 min', seconds: 3 * 60 },
-        { label: '50 min', seconds: 5 * 60 },
+        { label: '25 min', seconds: 25 * 60 },
+        { label: '30 min', seconds: 30 * 60 },
+        { label: '45 min', seconds: 45 * 60 },
+        { label: '50 min', seconds: 50 * 60 },
         { label: '1 hour', seconds: 60 * 60 },
         { label: '1.5 hours', seconds: 90 * 60 },
         { label: '2 hours', seconds: 120 * 60 },
@@ -109,7 +115,29 @@ function Pomodoro() {
                     onDoubleClick={doubleClickOnTimer}
                 >
                     <p>{formatTime(timeLeft)}</p>
-                </div>  
+                </div>
+
+                {showTimeMenu && (
+                    <div className="time-menu-overlay" onClick={closeTimeMenu}>
+                        <div className="time-menu" onClick={(e) => e.stopPropagation()}>
+                            <h3>Select Time</h3>
+                            <div className="time-options">
+                                {customTimeOptions.map((option, index) => (
+                                    <button
+                                        key={index}
+                                        className="time-option"
+                                        onClick={() => selectCustomTime(option.seconds)}
+                                    >
+                                        {option.label}
+                                    </button>
+                                ))}
+                            </div>
+                            <button className="close-menu" onClick={closeTimeMenu}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <div className="controls">
                     <button 
