@@ -1,5 +1,6 @@
 import {useState, useEffect, useRef} from 'react'
 import theWeeknd from './assets/theWeeknd.png'
+import spotifyIcon from './assets/spotifyIcon.png'
 
 function Pomodoro() {
     //Change if the timer active or not
@@ -222,88 +223,72 @@ function Pomodoro() {
                 </div>
         </div>  
 
-        {/* Separate Spotify Banner - completely independent */}
-{showSpotify && (
-    <div className="spotify-banner-container">
-        <div className="spotify-banner">
-            <div className="spotify-content">
-                <div className="album-art-container">
-                    <img src={currentTrack.albumArt} alt="Album Art" className="album-art" />
-                </div>
-                
-                <div className="track-info">
-                    <h3 className="track-title">{currentTrack.name}</h3>
-                    <p className="artist-name">{currentTrack.artist}</p>
-                    
-                    <div className="progress-container">
-                        <span className="current-time">{currentTrack.currentTime}</span>
-                        <div className="progress-bar">
-                            <div 
-                                className="progress-fill" 
-                                style={{width: `${currentTrack.progress}%`}}
-                            ></div>
+        {showSpotify && (
+                <div className="spotify-banner-container">
+                    <div className="spotify-banner">
+                        {/* Spotify Logo/Close Button - Positioned via CSS */}
+                        <div className="spotify-close-button-container">
+                             <button onClick={closeSpotifyBanner} className="spotify-logo-btn">
+                                <img
+                                    src={spotifyIcon} // Use imported icon
+                                    alt="Close Spotify Banner"
+                                    className="spotify-logo-icon"
+                                />
+                            </button>
                         </div>
-                        <span className="total-time">{currentTrack.duration}</span>
+
+                        <div className="spotify-content">
+                            <div className="album-art-container">
+                                <img src={currentTrack.albumArt} alt="Album Art" className="album-art" />
+                            </div>
+
+                            <div className="track-details-and-controls">
+                                <div className="track-info">
+                                    <h3 className="track-title">{currentTrack.name}</h3>
+                                    <p className="artist-name">{currentTrack.artist}</p>
+                                </div>
+
+                                <div className="progress-container">
+                                    <span className="current-time">{currentTrack.currentTime}</span>
+                                    <div className="progress-bar">
+                                        <div
+                                            className="progress-fill"
+                                            style={{ width: `${currentTrack.progress}%` }}
+                                        ></div>
+                                    </div>
+                                    <span className="total-time">{currentTrack.duration}</span>
+                                </div>
+
+                                <div className="playback-controls">
+                                    <button onClick={previousTrack} className="control-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061A1.125 1.125 0 0 1 21 8.689v8.122ZM11.25 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061a1.125 1.125 0 0 1 1.683.977v8.122Z" />
+                                        </svg>
+                                    </button>
+
+                                    <button onClick={toggleSpotifyPlayback} className="control-btn play-pause-btn">
+                                        {isSpotifyPlaying ? (
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
+                                            </svg>
+                                        ) : (
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
+                                            </svg>
+                                        )}
+                                    </button>
+
+                                    <button onClick={nextTrack} className="control-btn">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                
-                <div className="playback-controls">
-                    <button onClick={previousTrack} className="control-btn">
-                        {/* PASTE YOUR HEROICONS BACKWARD/PREVIOUS SVG HERE */}
-                        {/* Example placeholder - replace with your Heroicons SVG */}
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            {<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061A1.125 1.125 0 0 1 21 8.689v8.122ZM11.25 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061a1.125 1.125 0 0 1 1.683.977v8.122Z" />
-</svg>
-}
-                        </svg>
-                    </button>
-                    
-                    <button onClick={toggleSpotifyPlayback} className="control-btn play-pause-btn">
-                        {isSpotifyPlaying ? (
-                            // PASTE YOUR HEROICONS PAUSE SVG HERE
-                            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                                {<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" />
-</svg>
-}
-                            </svg>
-                        ) : (
-                            // PASTE YOUR HEROICONS PLAY SVG HERE
-                            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                                {<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-</svg>
-}
-                            </svg>
-                        )}
-                    </button>
-                    
-                    <button onClick={nextTrack} className="control-btn">
-                        {/* PASTE YOUR HEROICONS FORWARD/NEXT SVG HERE */}
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                            {<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061A1.125 1.125 0 0 1 3 16.811V8.69ZM12.75 8.689c0-.864.933-1.406 1.683-.977l7.108 4.061a1.125 1.125 0 0 1 0 1.954l-7.108 4.061a1.125 1.125 0 0 1-1.683-.977V8.69Z" />
-</svg>
-}
-                        </svg>
-                    </button>
-                </div>
-                
-                <div className="spotify-logo-container">
-                    <button onClick={closeSpotifyBanner} className="spotify-logo-btn">
-                        {/* Use your official Spotify SVG from assets */}
-                        <img 
-                            src="src/assets/SpotifyIcon.svg" 
-                            alt="Spotify" 
-                            className="spotify-logo"
-                        />
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-)}
+            )}
         </>
     )
 }

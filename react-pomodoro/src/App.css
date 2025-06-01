@@ -345,27 +345,59 @@
     }
 }
 
-/* FIXED SPOTIFY BANNER STYLES */
 .spotify-banner-container {
-    width: 320px; /* Match Pomodoro container width exactly */
+    width: 320px; /* Match Pomodoro container width */ /* */
     display: flex;
     justify-content: center;
-    margin: 0; /* Remove top margin */
+    margin-top: 0; /* Adjusted from original CSS to ensure it's right after */
 }
 
 .spotify-banner {
-    background: #1a1a1a; /* Darker background to differentiate */
+    background: #2E2E2E;
     border-radius: 12px;
-    padding: 12px; /* Reduced padding for better proportions */
+    padding: 12px;
+    padding-top: 36px; /* Add padding at the top for the close button */
     width: 100%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #333; /* Add subtle border */
+    border: 1px solid #333;
+    position: relative; /* For absolute positioning of the close button */
 }
+
+.spotify-close-button-container {
+    position: absolute;
+    top: 8px; /* Adjust as needed */
+    right: 8px; /* Adjust as needed */
+    z-index: 10; /* Ensure it's above other content if necessary */
+}
+
+.spotify-logo-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.spotify-logo-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.spotify-logo-icon { /* Renamed from .spotify-logo to be more specific */
+    width: 20px; /* */
+    height: 20px; /* */
+    /* fill: #1DB954; If it's an SVG and needs color */
+}
+
 
 .spotify-content {
     display: flex;
-    align-items: center;
-    gap: 12px; /* Reduced gap for better spacing */
+    align-items: flex-start; /* Align items to the start for the new layout */
+    gap: 12px;
 }
 
 .album-art-container {
@@ -373,22 +405,28 @@
 }
 
 .album-art {
-    width: 56px; /* Smaller album art for better proportions */
-    height: 56px;
+    width: 92px; /* */
+    height: 92px; /* */
     border-radius: 6px;
     object-fit: cover;
 }
 
-.track-info {
+.track-details-and-controls {
     flex-grow: 1;
-    min-width: 0;
-    margin-right: 8px; /* Add some spacing before controls */
+    display: flex;
+    flex-direction: column;
+    min-width: 0; /* Important for text ellipsis */
+}
+
+.track-info {
+    /* Contains track title and artist name */
+    margin-bottom: 8px; /* Space before progress bar */
 }
 
 .track-title {
     color: white;
     font-family: Poppins, sans-serif;
-    font-size: 14px; /* Smaller font size */
+    font-size: 14px; /* */
     font-weight: 500;
     margin: 0 0 2px 0;
     white-space: nowrap;
@@ -399,8 +437,8 @@
 .artist-name {
     color: #b3b3b3;
     font-family: Poppins, sans-serif;
-    font-size: 12px; /* Smaller font size */
-    margin: 0 0 8px 0;
+    font-size: 12px; /* */
+    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -409,21 +447,23 @@
 .progress-container {
     display: flex;
     align-items: center;
-    gap: 6px; /* Reduced gap */
+    gap: 6px;
+    width: 100%; /* Ensure it takes full width */
+    margin-bottom: 10px; /* Space before playback controls */
 }
 
 .current-time,
 .total-time {
     color: #b3b3b3;
     font-family: Poppins, sans-serif;
-    font-size: 10px; /* Smaller font size */
-    min-width: 28px;
+    font-size: 10px;
+    min-width: 28px; /* Ensures time is visible */
     text-align: center;
 }
 
 .progress-bar {
     flex-grow: 1;
-    height: 3px; /* Thinner progress bar */
+    height: 3px; /* */
     background: #4a4a4a;
     border-radius: 2px;
     overflow: hidden;
@@ -439,8 +479,9 @@
 .playback-controls {
     display: flex;
     align-items: center;
-    gap: 4px; /* Reduced gap */
-    flex-shrink: 0;
+    justify-content: center; /* Center the controls */
+    gap: 16px; /* Increased gap for better spacing between controls */
+    width: 100%; /* Ensure it takes full width */
 }
 
 .control-btn {
@@ -448,109 +489,76 @@
     border: none;
     color: white;
     cursor: pointer;
-    padding: 6px; /* Reduced padding */
+    padding: 6px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s ease;
-    width: 28px; /* Fixed width */
-    height: 28px; /* Fixed height */
+}
+.control-btn svg { /* Applied to all SVGs in control buttons */
+    width: 18px; /* Standardized icon size */
+    height: 18px;
 }
 
 .control-btn:hover {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.control-btn svg {
-    width: 16px; /* Smaller icons */
-    height: 16px;
+.play-pause-btn svg { /* Slightly larger play/pause icon if desired */
+    width: 22px;
+    height: 22px;
 }
 
-.play-pause-btn {
-    width: 32px; /* Slightly larger for play/pause */
-    height: 32px;
-}
-
-.play-pause-btn svg {
-    width: 18px;
-    height: 18px;
-}
-
-.spotify-logo-container {
-    flex-shrink: 0;
-    margin-left: 4px;
-}
-
-.spotify-logo-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease;
-    width: 28px;
-    height: 28px;
-}
-
-.spotify-logo-btn:hover {
-    transform: scale(1.1);
-}
-
-.spotify-logo {
-    width: 20px; /* Smaller Spotify logo */
-    height: 20px;
-    transition: transform 0.2s ease;
-}
-
-.spotify-logo-btn:hover .spotify-logo {
-    transform: scale(1.1);
-}
-
-/* Responsive adjustments */
+/* Responsive adjustments (keeping your existing media query) */
 @media (max-width: 600px) {
     .pomodoro-container,
     .spotify-banner-container {
-        width: 280px; /* Smaller on mobile */
+        width: 280px; /* */
+    }
+
+    .spotify-banner {
+        padding: 10px;
+        padding-top: 32px; /* Adjust for close button */
     }
     
     .spotify-content {
-        gap: 10px;
+        gap: 10px; /* */
     }
     
     .album-art {
-        width: 48px;
-        height: 48px;
+        width: 48px; /* */
+        height: 48px; /* */
     }
     
     .track-title {
-        font-size: 13px;
+        font-size: 13px; /* */
     }
     
     .artist-name {
-        font-size: 11px;
+        font-size: 11px; /* */
     }
-    
+
     .playback-controls {
-        gap: 2px;
-    }
-    
-    .control-btn {
-        width: 24px;
-        height: 24px;
-        padding: 4px;
+        gap: 12px; /* Adjust gap for smaller screens */
     }
     
     .control-btn svg {
-        width: 14px;
-        height: 14px;
+        width: 16px; /* Slightly smaller icons on mobile */
+        height: 16px;
     }
     
-    .play-pause-btn {
-        width: 28px;
-        height: 28px;
+    .play-pause-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .spotify-logo-icon {
+        width: 18px;
+        height: 18px;
+    }
+    .spotify-close-button-container {
+        top: 6px;
+        right: 6px;
     }
 }
