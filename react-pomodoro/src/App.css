@@ -1,3 +1,4 @@
+/* Your existing Pomodoro styles remain the same */
 .pomodoro-container {
     width: 320px;
     height: 520px;
@@ -9,6 +10,7 @@
     padding: 30px 20px;
     gap: 20px;
     position: relative;
+    margin-bottom: 20px; /* Add spacing between containers */
 }
 
 .pomodoro-container h1 {
@@ -252,8 +254,7 @@
     transform: translateY(0);
 }
 
-/* Timer Up Popup Styles - Add these to your existing CSS */
-
+/* Timer Up Popup Styles */
 .timer-up-overlay {
     position: fixed;
     top: 0;
@@ -341,5 +342,215 @@
     to {
         transform: translateY(0) scale(1);
         opacity: 1;
+    }
+}
+
+/* FIXED SPOTIFY BANNER STYLES */
+.spotify-banner-container {
+    width: 320px; /* Match Pomodoro container width exactly */
+    display: flex;
+    justify-content: center;
+    margin: 0; /* Remove top margin */
+}
+
+.spotify-banner {
+    background: #1a1a1a; /* Darker background to differentiate */
+    border-radius: 12px;
+    padding: 12px; /* Reduced padding for better proportions */
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid #333; /* Add subtle border */
+}
+
+.spotify-content {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Reduced gap for better spacing */
+}
+
+.album-art-container {
+    flex-shrink: 0;
+}
+
+.album-art {
+    width: 56px; /* Smaller album art for better proportions */
+    height: 56px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.track-info {
+    flex-grow: 1;
+    min-width: 0;
+    margin-right: 8px; /* Add some spacing before controls */
+}
+
+.track-title {
+    color: white;
+    font-family: Poppins, sans-serif;
+    font-size: 14px; /* Smaller font size */
+    font-weight: 500;
+    margin: 0 0 2px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.artist-name {
+    color: #b3b3b3;
+    font-family: Poppins, sans-serif;
+    font-size: 12px; /* Smaller font size */
+    margin: 0 0 8px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* Reduced gap */
+}
+
+.current-time,
+.total-time {
+    color: #b3b3b3;
+    font-family: Poppins, sans-serif;
+    font-size: 10px; /* Smaller font size */
+    min-width: 28px;
+    text-align: center;
+}
+
+.progress-bar {
+    flex-grow: 1;
+    height: 3px; /* Thinner progress bar */
+    background: #4a4a4a;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #1db954;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px; /* Reduced gap */
+    flex-shrink: 0;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 6px; /* Reduced padding */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    width: 28px; /* Fixed width */
+    height: 28px; /* Fixed height */
+}
+
+.control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.control-btn svg {
+    width: 16px; /* Smaller icons */
+    height: 16px;
+}
+
+.play-pause-btn {
+    width: 32px; /* Slightly larger for play/pause */
+    height: 32px;
+}
+
+.play-pause-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.spotify-logo-container {
+    flex-shrink: 0;
+    margin-left: 4px;
+}
+
+.spotify-logo-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+    width: 28px;
+    height: 28px;
+}
+
+.spotify-logo-btn:hover {
+    transform: scale(1.1);
+}
+
+.spotify-logo {
+    width: 20px; /* Smaller Spotify logo */
+    height: 20px;
+    transition: transform 0.2s ease;
+}
+
+.spotify-logo-btn:hover .spotify-logo {
+    transform: scale(1.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .pomodoro-container,
+    .spotify-banner-container {
+        width: 280px; /* Smaller on mobile */
+    }
+    
+    .spotify-content {
+        gap: 10px;
+    }
+    
+    .album-art {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .track-title {
+        font-size: 13px;
+    }
+    
+    .artist-name {
+        font-size: 11px;
+    }
+    
+    .playback-controls {
+        gap: 2px;
+    }
+    
+    .control-btn {
+        width: 24px;
+        height: 24px;
+        padding: 4px;
+    }
+    
+    .control-btn svg {
+        width: 14px;
+        height: 14px;
+    }
+    
+    .play-pause-btn {
+        width: 28px;
+        height: 28px;
     }
 }
