@@ -4,15 +4,17 @@ function Pomodoro() {
     //Change if the timer active or not
     const [isRunning, setIsRunning] = useState(false);
     // Keep track of time left
-    const [timeLeft, setTimeLeft] = useState(10 * 60)
+    const [timeLeft, setTimeLeft] = useState(0.1 * 60)
     //change our interval with rerendering
     const intervalRef = useRef(null);   
     //set the duration
-    const [currentDuration, setCurrentDuration] = useState(10 * 60);
+    const [currentDuration, setCurrentDuration] = useState(0.1 * 60);
     // Track active preset for styling
     const [activePreset, setActivePreset] = useState(1); // Default to 10 min (index 1)
     //Show custom time menu
     const [showTimeMenu, setTimeMenu] = useState(false)
+    //Popup for when timer is up
+    const [showTimerUp, setShowTimerUp] = useState(false);
 
     //Formatting the timer in MM:SS
     const formatTime = (seconds) => {
@@ -34,6 +36,7 @@ function Pomodoro() {
                 setTimeLeft(prev => {
                     if (prev <= 1) {
                         setIsRunning(false);
+                        setShowTimerUp(true);
                         return 0;
                     }
                     return prev -1;
@@ -66,6 +69,10 @@ function Pomodoro() {
     //Close timer menu
     const closeTimeMenu = () => {
         setTimeMenu(false);
+    }
+
+    const closeTimerUpPopup = () => {
+        setShowTimerUp(false);
     }
 
     //Selecting a custom time
@@ -116,6 +123,18 @@ function Pomodoro() {
                 >
                     <p>{formatTime(timeLeft)}</p>
                 </div>
+
+                {showTimerUp && (
+                    <div className="timer-up-overlay" onClick={closeTimerUpPopup}>
+                        <div className="timer-up-popup" onClick={(e) => e.stopPropagation()}>
+                            <h2>⏰ Time's Up!</h2>
+                            <p>Your pomodoro has finished.</p>
+                            <button className="dismiss-btn" onClick={closeTimerUpPopup}>
+                                Dismiss
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {showTimeMenu && (
                     <div className="time-menu-overlay" onClick={closeTimeMenu}>
