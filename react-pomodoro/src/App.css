@@ -10,7 +10,7 @@
     padding: 30px 20px;
     gap: 20px;
     position: relative;
-    margin-bottom: 20px; /* Add spacing between containers */
+    margin-bottom: 5px; /* Add spacing between containers */
 }
 
 .pomodoro-container h1 {
@@ -349,7 +349,7 @@
     width: 320px; /* Match Pomodoro container width */ /* */
     display: flex;
     justify-content: center;
-    margin-top: 0; /* Adjusted from original CSS to ensure it's right after */
+    margin-top: 0px; /* Adjusted from original CSS to ensure it's right after */
 }
 
 .spotify-banner {
