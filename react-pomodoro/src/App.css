@@ -562,3 +562,9 @@
         right: 6px;
     }
 }
+
+.pomodoro-container,
+.spotify-banner-container,
+.spotify-banner {
+    box-sizing: border-box;
+}
