@@ -4,6 +4,7 @@ import axios from "axios";
 //get env varibles
 const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
 const SPOTIFY_REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
+const SPOTIFY_API_BASE_URL = import.meta.env.VITE_SPOTIFY_BASE_URL;
 
 //endpoints
 const AUTHORIZE_ENDPOINT = "https://accounts.spotify.com/authorize";
@@ -135,58 +136,61 @@ export const useSpotifyAuth = () => {
       } finally {
         setIsLoading(false);
       }
-    }, [logout]);
+    },
+    [logout]
+  );
 
-    const refreshAccessToken = useCallback(async () => {
-        if (!SPOTIFY_CLIENT_ID) {
-            setError("Spotify Client ID invalid");
-            logout();
-            return null;
-        }
-        const currentRefreshToken = localStorage.getItem('spotify_refresh_token');
-        if (!currentRefreshToken) {
-            setError("Please login again");
-            logout();
-            return null;
-        }
-        setIsLoading(true);
-        const payload = {
-            grant_type: "refresh_token",
-            refresh_token: currentRefreshToken,
-            client_id: SPOTIFY_CLIENT_ID,
-        };
+  const refreshAccessToken = useCallback(async () => {
+    if (!SPOTIFY_CLIENT_ID) {
+      setError("Spotify Client ID invalid");
+      logout();
+      return null;
+    }
+    const currentRefreshToken = localStorage.getItem("spotify_refresh_token");
+    if (!currentRefreshToken) {
+      setError("Please login again");
+      logout();
+      return null;
+    }
+    setIsLoading(true);
+    const payload = {
+      grant_type: "refresh_token",
+      refresh_token: currentRefreshToken,
+      client_id: SPOTIFY_CLIENT_ID,
+    };
 
-        try {
-            const reponse = await axios.post(
-                TOKEN_ENDPOINT,
-                new URLSearchParams(payload).toString(),
-                    { header: { "Content-Type": "application/x-www.form-urlencoded" } }
-            );
+    try {
+      const reponse = await axios.post(
+        TOKEN_ENDPOINT,
+        new URLSearchParams(payload).toString(),
+        { header: { "Content-Type": "application/x-www.form-urlencoded" } }
+      );
 
-            const {access_token, refresh_token: newRefreshtoken} = reponse.data;
-            setAccessToken(access_token);
-            localStorage.setItem('spotify_access_token'. access_token);
-            if (newRefreshtoken) {
-                setRefreshToken(newRefreshtoken);
-                localStorage.setItem('spotify_refresh_token', newRefreshtoken);
-            }
-            setError(null);
-            return access_token;
-        } catch (error) {
-            setError("Could not refresh token");
-            logout();
-            return null;
-        } finally {
-            setIsLoading(false);
-        }
-    }, [logout]);
+      const { access_token, refresh_token: newRefreshtoken } = reponse.data;
+      setAccessToken(access_token);
+      localStorage.setItem("spotify_access_token".access_token);
+      if (newRefreshtoken) {
+        setRefreshToken(newRefreshtoken);
+        localStorage.setItem("spotify_refresh_token", newRefreshtoken);
+      }
+      setError(null);
+      return access_token;
+    } catch (error) {
+      setError("Could not refresh token");
+      logout();
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [logout]);
 
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get("code");
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
 
-        if (code) {
-      if (SPOTIFY_CLIENT_ID && SPOTIFY_REDIRECT_URI) { // Check if config is loaded
+    if (code) {
+      if (SPOTIFY_CLIENT_ID && SPOTIFY_REDIRECT_URI) {
+        // Check if config is loaded
         exchangeCodeForToken(code);
       } else {
         console.error("Spotify config not loaded on redirect.");
@@ -194,29 +198,99 @@ export const useSpotifyAuth = () => {
         setIsLoading(false);
       }
     } else {
-      const storedAccessToken = localStorage.getItem('spotify_access_token');
-      const storedRefreshToken = localStorage.getItem('spotify_refresh_token');
+      const storedAccessToken = localStorage.getItem("spotify_access_token");
+      const storedRefreshToken = localStorage.getItem("spotify_refresh_token");
       if (storedAccessToken) {
         setAccessToken(storedAccessToken);
         if (storedRefreshToken) setRefreshToken(storedRefreshToken);
-         setIsLoading(false);
+        setIsLoading(false);
       } else if (storedRefreshToken) {
-        if (SPOTIFY_CLIENT_ID) { // Check if config is loaded for refresh
-            refreshAccessToken().finally(() => setIsLoading(false));
+        if (SPOTIFY_CLIENT_ID) {
+          // Check if config is loaded for refresh
+          refreshAccessToken().finally(() => setIsLoading(false));
         } else {
-            console.error("Spotify config not loaded for token refresh.");
-            setError("Spotify configuration is missing. Cannot refresh token.");
-            setIsLoading(false);
+          console.error("Spotify config not loaded for token refresh.");
+          setError("Spotify configuration is missing. Cannot refresh token.");
+          setIsLoading(false);
         }
       } else {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     }
-  }, [exchangeCodeForToken, refreshAccessToken]);;
-  
+  }, [exchangeCodeForToken, refreshAccessToken]);
 
+  const spotifyAPICall = useCallback(
+    async (endpoint) => {
+      let currentAccessToken = localStorage.getItem("spotify_access_token");
 
+      if (!currentAccessToken) {
+        if (!SPOTIFY_CLIENT_ID) {
+          setError("Cannot make API call");
+          return null;
+        }
+        currentAccessToken = await refreshAccessToken();
+        if (!currentAccessToken) {
+          setError("Authentication required");
+          return null;
+        }
+      }
+      try {
+        const response = await axios({
+          method,
+          url: `${SPOTIFY_API_BASE_URL}${endpoint}`,
+          header: {
+            Authorization: `Bearer ${currentAccessToken}`,
+            "Content-Type": body ? "application/json" : undefined,
+          },
+          data: body,
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response && error.response.status === 401) {
+          setError("Token expired");
+          if (!SPOTIFY_CLIENT_ID) {
+            setError("Spotify Client ID is not configured");
+            logout();
+            return null;
+          }
 
-
-
+          const newAccessToken = await refreshAccessToken();
+          if (newAccessToken) {
+            try {
+              const retryReponse = await axios({
+                method,
+                url: `${SPOTIFY_API_BASE_URL}${endpoint}`,
+                header: {
+                  Authorization: `Bearer ${currentAccessToken}`,
+                  "Content-Type": body ? "application/json" : undefined,
+                },
+                data: body,
+              });
+              return retryReponse.data;
+            } catch (retryError) {
+              setError("API call no successful after refresh");
+              return null;
+            }
+          } else {
+            setError("Failed to refresh, try again");
+            logout();
+            return null;
+          }
+        } else {
+          setError("API Error");
+          return null;
+        }
+      }
+    },
+    [refreshAccessToken, logout]
+  );
+  return {
+    accessToken,
+    refreshToken,
+    error,
+    isLoading,
+    login,
+    logout,
+    spotifyAPICall,
+  };
 };
