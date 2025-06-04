@@ -43,7 +43,7 @@ export const useSpotifyAuth = () => {
     localStorage.getItem("spotify_refresh_token")
   );
   const [error, setError] = useState(null);
-  const [isLoading, setIsLoading] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const login = async () => {
     if (!SPOTIFY_CLIENT_ID || !SPOTIFY_REDIRECT_URI) {
@@ -62,17 +62,17 @@ export const useSpotifyAuth = () => {
 
     const params = {
       client_id: SPOTIFY_CLIENT_ID,
-      reponse_type: "code",
+      response_type: "code",
       redirect_uri: SPOTIFY_REDIRECT_URI,
       scope: SCOPES,
       code_challenge_method: "S256",
-      code_challeng: codeChallenge,
+      code_challenge: codeChallenge,
     };
 
     const authURL = `${AUTHORIZE_ENDPOINT}?${new URLSearchParams(
       params
     ).toString()}`;
-    window.location.href = authURL.toString();
+    window.location.href = authURL
   };
 
   const logout = useCallback(() => {
@@ -99,7 +99,7 @@ export const useSpotifyAuth = () => {
       const codeVerifier = localStorage.getItem("spotify_code_verifier");
       if (!codeVerifier) {
         setError("Authorization failed");
-        localStorage.removeItem("spotify_acceess_token");
+        localStorage.removeItem("spotify_access_token");
         localStorage.removeItem("spotify_refresh_token");
         setIsLoading(false);
         return;
@@ -114,18 +114,18 @@ export const useSpotifyAuth = () => {
       };
 
       try {
-        const reponse = await axios.post(
+        const response = await axios.post(
           TOKEN_ENDPOINT,
           new URLSearchParams(payload).toString(),
-          { header: { "Content-Type": "application/x-www.form-urlencoded" } }
+          { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
         );
 
-        const { access_token, refresh_token: newRefreshtoken } = response.data;
+        const { access_token, refresh_token: newRefreshToken } = response.data;
         setAccessToken(access_token);
         localStorage.setItem("spotify_access_token", access_token);
-        if (newRefreshtoken) {
-          setRefreshToken(newRefreshtoken);
-          localStorage.setItem("spotify_refresh_token", newRefreshtoken);
+        if (newRefreshToken) {
+          setRefreshToken(newRefreshToken);
+          localStorage.setItem("spotify_refresh_token", newRefreshToken);
         }
         setError(null);
         return access_token;
@@ -160,18 +160,18 @@ export const useSpotifyAuth = () => {
     };
 
     try {
-      const reponse = await axios.post(
+      const response = await axios.post(
         TOKEN_ENDPOINT,
         new URLSearchParams(payload).toString(),
-        { header: { "Content-Type": "application/x-www.form-urlencoded" } }
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
       );
 
-      const { access_token, refresh_token: newRefreshtoken } = reponse.data;
+      const { access_token, refresh_token: newRefreshToken } = response.data;
       setAccessToken(access_token);
-      localStorage.setItem("spotify_access_token".access_token);
-      if (newRefreshtoken) {
-        setRefreshToken(newRefreshtoken);
-        localStorage.setItem("spotify_refresh_token", newRefreshtoken);
+      localStorage.setItem("spotify_access_token", access_token);
+      if (newRefreshToken) {
+        setRefreshToken(newRefreshToken);
+        localStorage.setItem("spotify_refresh_token", newRefreshToken);
       }
       setError(null);
       return access_token;
@@ -220,7 +220,7 @@ export const useSpotifyAuth = () => {
   }, [exchangeCodeForToken, refreshAccessToken]);
 
   const spotifyAPICall = useCallback(
-    async (endpoint) => {
+    async (endpoint, method='GET', body = null) => {
       let currentAccessToken = localStorage.getItem("spotify_access_token");
 
       if (!currentAccessToken) {
@@ -238,7 +238,7 @@ export const useSpotifyAuth = () => {
         const response = await axios({
           method,
           url: `${SPOTIFY_API_BASE_URL}${endpoint}`,
-          header: {
+          headers: {
             Authorization: `Bearer ${currentAccessToken}`,
             "Content-Type": body ? "application/json" : undefined,
           },
@@ -257,16 +257,16 @@ export const useSpotifyAuth = () => {
           const newAccessToken = await refreshAccessToken();
           if (newAccessToken) {
             try {
-              const retryReponse = await axios({
+              const retryResponse = await axios({
                 method,
                 url: `${SPOTIFY_API_BASE_URL}${endpoint}`,
-                header: {
-                  Authorization: `Bearer ${currentAccessToken}`,
+                headers: {
+                  Authorization: `Bearer ${newAccessToken}`,
                   "Content-Type": body ? "application/json" : undefined,
                 },
                 data: body,
               });
-              return retryReponse.data;
+              return retryResponse.data;
             } catch (retryError) {
               setError("API call no successful after refresh");
               return null;
