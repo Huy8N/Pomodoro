@@ -1,4 +1,6 @@
+// hooks
 import { useState, useEffect, useCallback } from "react";
+// axios for error handling
 import axios from "axios";
 
 //get env varibles
@@ -13,7 +15,7 @@ const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 const SCOPES =
   "streaming user-modify-playback-state user-read-currently-playing";
 
-//PKCE helper function from spotify doc
+//PKCE Flow helper function from spotify doc
 //Generate a key
 const generateRandomString = (length) => {
   const possible =
@@ -35,6 +37,7 @@ const base64encode = (input) => {
     .replace(/\//g, "_");
 };
 
+// fucntio to authenticate
 export const useSpotifyAuth = () => {
   const [accessToken, setAccessToken] = useState(
     localStorage.getItem("spotify_access_token")
@@ -51,15 +54,16 @@ export const useSpotifyAuth = () => {
       setIsLoading(false);
       return;
     }
-    setError(null);
 
     //generate the crypto code
     const codeVerifier = generateRandomString(64);
     const hashed = await sha256(codeVerifier);
     const codeChallenge = base64encode(hashed);
 
+    //Keep code on local storage
     localStorage.setItem("spotify_code_verifier", codeVerifier);
 
+    // paramters to send to spotify for authorization
     const params = {
       client_id: SPOTIFY_CLIENT_ID,
       response_type: "code",
@@ -69,12 +73,14 @@ export const useSpotifyAuth = () => {
       code_challenge: codeChallenge,
     };
 
+    //URL for auth
     const authURL = `${AUTHORIZE_ENDPOINT}?${new URLSearchParams(
       params
     ).toString()}`;
-    window.location.href = authURL
+    window.location.href = authURL;
   };
 
+  // logout functon
   const logout = useCallback(() => {
     setAccessToken(null);
     setRefreshToken(null);
@@ -86,6 +92,7 @@ export const useSpotifyAuth = () => {
     setIsLoading(false);
   }, []);
 
+  // exchange auth code for token
   const exchangeCodeForToken = useCallback(
     async (code) => {
       if (!SPOTIFY_CLIENT_ID || !SPOTIFY_REDIRECT_URI) {
@@ -98,13 +105,14 @@ export const useSpotifyAuth = () => {
 
       const codeVerifier = localStorage.getItem("spotify_code_verifier");
       if (!codeVerifier) {
-        setError("Authorization failed");
+        setError("Invalid codeVerifier");
         localStorage.removeItem("spotify_access_token");
         localStorage.removeItem("spotify_refresh_token");
         setIsLoading(false);
         return;
       }
 
+      // paylode to spotify in exchange for token
       const payload = {
         client_id: SPOTIFY_CLIENT_ID,
         grant_type: "authorization_code",
@@ -130,7 +138,7 @@ export const useSpotifyAuth = () => {
         setError(null);
         return access_token;
       } catch (error) {
-        console.log("No spotify refresh token");
+        setError("Exchange for token faield");
         logout();
         return null;
       } finally {
@@ -148,11 +156,12 @@ export const useSpotifyAuth = () => {
     }
     const currentRefreshToken = localStorage.getItem("spotify_refresh_token");
     if (!currentRefreshToken) {
-      setError("Please login again");
+      setError("Invalid Refresh Token");
       logout();
       return null;
     }
     setIsLoading(true);
+    // Params to send to spotify for new tokens
     const payload = {
       grant_type: "refresh_token",
       refresh_token: currentRefreshToken,
@@ -184,6 +193,7 @@ export const useSpotifyAuth = () => {
     }
   }, [logout]);
 
+  // If auth and token exchange is successful
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get("code");
@@ -193,7 +203,6 @@ export const useSpotifyAuth = () => {
         // Check if config is loaded
         exchangeCodeForToken(code);
       } else {
-        console.error("Spotify config not loaded on redirect.");
         setError("Spotify configuration is missing. Cannot process login.");
         setIsLoading(false);
       }
@@ -220,12 +229,12 @@ export const useSpotifyAuth = () => {
   }, [exchangeCodeForToken, refreshAccessToken]);
 
   const spotifyAPICall = useCallback(
-    async (endpoint, method='GET', body = null) => {
-      let currentAccessToken = localStorage.getItem("spotify_access_token");
+    async (endpoint, method = "GET", body = null) => {
+      const currentAccessToken = localStorage.getItem("spotify_access_token");
 
       if (!currentAccessToken) {
         if (!SPOTIFY_CLIENT_ID) {
-          setError("Cannot make API call");
+          setError("Invalid spotify clien ID");
           return null;
         }
         currentAccessToken = await refreshAccessToken();
