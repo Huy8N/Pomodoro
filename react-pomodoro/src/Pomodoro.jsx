@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import theWeeknd from "./assets/theWeeknd.png";
+import defaultAlbumCover from "./assets/defaultAlbumCover.png";
 import spotifyIcon from "./assets/spotifyIcon.png";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 
@@ -7,7 +7,7 @@ function Pomodoro() {
   //Change if the timer active or not
   const [isRunning, setIsRunning] = useState(false);
   // Keep track of time left
-  const [timeLeft, setTimeLeft] = useState(0.1 * 60);
+  const [timeLeft, setTimeLeft] = useState(5 * 60);
   //change our interval with rerendering
   const intervalRef = useRef(null);
   //set the duration
@@ -34,7 +34,7 @@ function Pomodoro() {
     duration: "0:00",
     currentTime: "0:00",
     progress: 0, // percentage
-    albumArt: theWeeknd,
+    albumArt: defaultAlbumCover,
   });
 
   //Get current song playing
@@ -107,9 +107,9 @@ function Pomodoro() {
     }
 
     try {
-        await spotifyAPICall("/me/player/previous", "POST");
-        setTimeout(getCurrentPlayback, 500);
-      } catch (error) {
+      await spotifyAPICall("/me/player/previous", "POST");
+      setTimeout(getCurrentPlayback, 500);
+    } catch (error) {
       console.log(error);
     }
   };
@@ -125,8 +125,8 @@ function Pomodoro() {
     } catch (error) {
       console.log(error);
     }
-  }
-    const closeSpotifyBanner = () => {
+  };
+  const closeSpotifyBanner = () => {
     setShowSpotify(false);
     // Clear the playback polling when banner is closed
     if (playbackIntervalRef.current) {
@@ -135,63 +135,65 @@ function Pomodoro() {
   };
 
   const checkAccountType = async () => {
-  if (!accessToken) {
-    console.log("No access token available");
-    return;
-  }
-
-  try {
-    const userData = await spotifyAPICall("/me");
-    console.log("=== SPOTIFY ACCOUNT INFO ===");
-    console.log("Display Name:", userData.display_name);
-    console.log("Email:", userData.email);
-    console.log("Country:", userData.country);
-    console.log("Product (Subscription):", userData.product);
-    console.log("Followers:", userData.followers.total);
-    console.log("=== END ACCOUNT INFO ===");
-    
-    if (userData.product === 'free') {
-      console.log("🚫 FREE ACCOUNT - Playback controls will not work");
-      alert("Free Spotify account detected. Playback controls require Spotify Premium.");
-    } else if (userData.product === 'premium') {
-      console.log("✅ PREMIUM ACCOUNT - Playback controls should work");
-    } else {
-      console.log("❓ Unknown subscription type:", userData.product);
+    if (!accessToken) {
+      console.log("No access token available");
+      return;
     }
-    
-    return userData;
-  } catch (error) {
-    console.error("Error checking account type:", error);
-    console.log("Full error object:", error);
-  }
-};
 
-     const openSpotify = () => {
-    window.open('spotify:', '_blank');
+    try {
+      const userData = await spotifyAPICall("/me");
+      console.log("=== SPOTIFY ACCOUNT INFO ===");
+      console.log("Display Name:", userData.display_name);
+      console.log("Email:", userData.email);
+      console.log("Country:", userData.country);
+      console.log("Product (Subscription):", userData.product);
+      console.log("Followers:", userData.followers.total);
+      console.log("=== END ACCOUNT INFO ===");
+
+      if (userData.product === "free") {
+        console.log("🚫 FREE ACCOUNT - Playback controls will not work");
+        alert(
+          "Free Spotify account detected. Playback controls require Spotify Premium."
+        );
+      } else if (userData.product === "premium") {
+        console.log("✅ PREMIUM ACCOUNT - Playback controls should work");
+      } else {
+        console.log("❓ Unknown subscription type:", userData.product);
+      }
+
+      return userData;
+    } catch (error) {
+      console.error("Error checking account type:", error);
+      console.log("Full error object:", error);
+    }
+  };
+
+  const openSpotify = () => {
+    window.open("spotify:", "_blank");
   };
 
   const playbackIntervalRef = useRef(null);
 
   useEffect(() => {
-  if (accessToken) {
-    getCurrentPlayback();
+    if (accessToken) {
+      getCurrentPlayback();
 
-    playbackIntervalRef.current = setInterval(() => {
-      getCurrentPlayback(); // ADD () here - you're missing the function call!
-    }, 2000);
-  } else {
-    if (playbackIntervalRef.current) {
-      clearInterval(playbackIntervalRef.current);
+      playbackIntervalRef.current = setInterval(() => {
+        getCurrentPlayback(); // ADD () here - you're missing the function call!
+      }, 2000);
+    } else {
+      if (playbackIntervalRef.current) {
+        clearInterval(playbackIntervalRef.current);
+      }
     }
-  }
 
-  // Add cleanup function
-  return () => {
-    if (playbackIntervalRef.current) {
-      clearInterval(playbackIntervalRef.current);
-    }
-  };
-}, [accessToken]);
+    // Add cleanup function
+    return () => {
+      if (playbackIntervalRef.current) {
+        clearInterval(playbackIntervalRef.current);
+      }
+    };
+  }, [accessToken]);
 
   //Formatting the timer in MM:SS
   const formatTime = (seconds) => {
@@ -241,7 +243,7 @@ function Pomodoro() {
   };
 
   // double cliking on timer to show menu
-  const doubleClickOnTimer = () => {
+  const singleClickOnTimer = () => {
     //Don't allow double click if timer is running
     if (isRunning) return;
     setTimeMenu(true);
@@ -274,18 +276,18 @@ function Pomodoro() {
   const presetTime = [
     { name: "5m", seconds: 5 * 60 },
     { name: "10m", seconds: 10 * 60 },
-    { name: "30m", seconds: 30 * 60 },
-    { name: "45m", seconds: 45 * 60 },
+    { name: "15m", seconds: 15 * 60 },
+    { name: "20m", seconds: 20 * 60 },
   ];
 
   //list of custom time option
   const customTimeOptions = [
     { label: "25 min", seconds: 25 * 60 },
     { label: "30 min", seconds: 30 * 60 },
-    { label: "45 min", seconds: 45 * 60 },
-    { label: "50 min", seconds: 50 * 60 },
-    { label: "1 hour", seconds: 60 * 60 },
-    { label: "1.5 hours", seconds: 90 * 60 },
+    { label: "35 min", seconds: 35 * 60 },
+    { label: "40 min", seconds: 40 * 60 },
+    { label: "45 hour", seconds: 45 * 60 },
+    { label: "1 hours", seconds: 60 * 60 },
     { label: "2 hours", seconds: 120 * 60 },
     { label: "3 hours", seconds: 180 * 60 },
     { label: "4 hours", seconds: 240 * 60 },
@@ -328,13 +330,12 @@ function Pomodoro() {
         <button onClick={checkAccountType} style={{ marginLeft: '10px' }}>
   Check Account Type
 </button> */}
-        
 
         <div
           className={`liveTimer-container ${
             !isRunning ? "double-clickable" : ""
           }`}
-          onDoubleClick={doubleClickOnTimer}
+          onClick={singleClickOnTimer}
         >
           <p>{formatTime(timeLeft)}</p>
         </div>
@@ -377,11 +378,56 @@ function Pomodoro() {
         )}
 
         <div className="controls">
-          <button onClick={toggleTimer} className={isRunning ? "pause" : ""}>
-            {/* Icons will be handled by CSS pseudo-elements */}
+          <button onClick={toggleTimer} className="control-btn">
+            {isRunning ? (
+              //pause
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                fill="none"
+                className="icon"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 5.25v13.5m-7.5-13.5v13.5"
+                />
+              </svg>
+            ) : (
+              // Play icon
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                fill="none"
+                className="icon"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653z"
+                />
+              </svg>
+            )}
           </button>
-          <button onClick={resetTimer}>
-            {/* Reset icon handled by CSS */}
+          <button onClick={resetTimer} className="reset-btn">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+              class="size-6"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
           </button>
         </div>
 
@@ -403,13 +449,11 @@ function Pomodoro() {
           <div className="spotify-banner">
             {/* Spotify Logo/Close Button - Positioned via CSS */}
             <div className="spotify-close-button-container">
-              <button onClick={closeSpotifyBanner} className="spotify-logo-btn">
-                <img
-                  src={spotifyIcon} // Use imported icon
-                  alt="Close Spotify Banner"
-                  className="spotify-logo-icon"
-                />
-              </button>
+              <img
+                src={spotifyIcon} // Use imported icon
+                alt="Close Spotify Banner"
+                className="spotify-logo-icon"
+              />
             </div>
 
             <div className="spotify-content">

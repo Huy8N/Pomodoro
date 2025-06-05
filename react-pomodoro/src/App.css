@@ -133,7 +133,7 @@
 }
 
 .time-option:hover {
-    background: #5A5A5A;
+    background: #4CAF50;
     transform: translateY(-1px);
 }
 
@@ -191,33 +191,9 @@
     transform: translateY(0);
 }
 
-/* Play button triangle */
-.controls button:first-child:not(.pause)::before {
-    content: '';
-    width: 0;
-    height: 0;
-    border-left: 12px solid #FFFFFF;
-    border-top: 8px solid transparent;
-    border-bottom: 8px solid transparent;
-    margin-left: 3px;
-}
-
-/* Pause button bars */
-.controls button:first-child.pause::before {
-    content: '';
-    width: 4px;
-    height: 16px;
-    background: #FFFFFF;
-    border: none;
-    margin: 0 2px 0 0;
-    box-shadow: 6px 0 0 #FFFFFF;
-}
-
-/* Reset button circular arrow */
-.controls button:last-child::before {
-    content: '↻';
-    font-size: 28px;
-    line-height: 1;
+.reset-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 .presets {
@@ -241,17 +217,12 @@
 }
 
 .presets button:hover {
-    background: #5A5A5A;
+    background: #4CAF50;
     transform: translateY(-1px);
 }
 
-.presets button.active {
-    background: #4CAF50;
-    color: #FFFFFF;
-}
-
 .presets button:active {
-    transform: translateY(0);
+    background-color: 4A4A4A;
 }
 
 /* Timer Up Popup Styles */
@@ -346,10 +317,10 @@
 }
 
 .spotify-banner-container {
-    width: 320px; /* Match Pomodoro container width */ /* */
+    width: 320px;
     display: flex;
     justify-content: center;
-    margin-top: 0px; /* Adjusted from original CSS to ensure it's right after */
+    margin-top: 0px;
 }
 
 .spotify-banner {
@@ -359,7 +330,6 @@
     padding-top: 36px; /* Add padding at the top for the close button */
     width: 100%;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border: 1px solid #333;
     position: relative; /* For absolute positioning of the close button */
 }
 
@@ -387,17 +357,18 @@
     transform: scale(1.1);
 }
 
-.spotify-logo-icon { /* Renamed from .spotify-logo to be more specific */
-    width: 20px; /* */
-    height: 20px; /* */
-    /* fill: #1DB954; If it's an SVG and needs color */
+.spotify-logo-icon { 
+    width: 23px;
+    height: 23px; 
+    
 }
 
 
 .spotify-content {
     display: flex;
-    align-items: flex-start; /* Align items to the start for the new layout */
+    align-items: flex-start; 
     gap: 12px;
+    margin-top: -15px;
 }
 
 .album-art-container {
@@ -405,8 +376,8 @@
 }
 
 .album-art {
-    width: 92px; /* */
-    height: 92px; /* */
+    width: 92px;
+    height: 92px;
     border-radius: 6px;
     object-fit: cover;
 }
