@@ -5,15 +5,15 @@ import axios from "axios";
 
 //get env varibles
 const SPOTIFY_CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
-const SPOTIFY_REDIRECT_URI = import.meta.env.VITE_SPOTIFY_REDIRECT_URI;
-const SPOTIFY_API_BASE_URL = import.meta.env.VITE_SPOTIFY_BASE_URL;
+const SPOTIFY_REDIRECT_URL = import.meta.env.VITE_SPOTIFY_REDIRECT_URL;
+const SPOTIFY_API_BASE_URL = import.meta.env.VITE_SPOTIFY_API_BASE_URL;
 
 //endpoints
 const AUTHORIZE_ENDPOINT = "https://accounts.spotify.com/authorize";
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 //What to have access to
 const SCOPES =
-  "streaming user-modify-playback-state user-read-currently-playing";
+  "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private";
 
 //PKCE Flow helper function from spotify doc
 //Generate a key
@@ -49,8 +49,8 @@ export const useSpotifyAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const login = async () => {
-    if (!SPOTIFY_CLIENT_ID || !SPOTIFY_REDIRECT_URI) {
-      setError("Spotify Client ID or Redirect URI is not configured");
+    if (!SPOTIFY_CLIENT_ID || !SPOTIFY_REDIRECT_URL) {
+      setError("Spotify Client ID or Redirect URL is not configured");
       setIsLoading(false);
       return;
     }
@@ -67,7 +67,7 @@ export const useSpotifyAuth = () => {
     const params = {
       client_id: SPOTIFY_CLIENT_ID,
       response_type: "code",
-      redirect_uri: SPOTIFY_REDIRECT_URI,
+      redirect_uri: SPOTIFY_REDIRECT_URL,
       scope: SCOPES,
       code_challenge_method: "S256",
       code_challenge: codeChallenge,
@@ -95,7 +95,7 @@ export const useSpotifyAuth = () => {
   // exchange auth code for token
   const exchangeCodeForToken = useCallback(
     async (code) => {
-      if (!SPOTIFY_CLIENT_ID || !SPOTIFY_REDIRECT_URI) {
+      if (!SPOTIFY_CLIENT_ID || !SPOTIFY_REDIRECT_URL) {
         setError("Spotify Client ID or Redirect URI is not configured");
         setIsLoading(false);
         logout();
@@ -117,7 +117,7 @@ export const useSpotifyAuth = () => {
         client_id: SPOTIFY_CLIENT_ID,
         grant_type: "authorization_code",
         code,
-        redirect_uri: SPOTIFY_REDIRECT_URI,
+        redirect_uri: SPOTIFY_REDIRECT_URL,
         code_verifier: codeVerifier,
       };
 
@@ -135,8 +135,8 @@ export const useSpotifyAuth = () => {
           setRefreshToken(newRefreshToken);
           localStorage.setItem("spotify_refresh_token", newRefreshToken);
         }
+        localStorage.removeItem("spotify_code_verifier");
         setError(null);
-        return access_token;
       } catch (error) {
         setError("Exchange for token faield");
         logout();
@@ -199,13 +199,15 @@ export const useSpotifyAuth = () => {
     const code = urlParams.get("code");
 
     if (code) {
-      if (SPOTIFY_CLIENT_ID && SPOTIFY_REDIRECT_URI) {
+      if (SPOTIFY_CLIENT_ID && SPOTIFY_REDIRECT_URL) {
         // Check if config is loaded
         exchangeCodeForToken(code);
       } else {
         setError("Spotify configuration is missing. Cannot process login.");
         setIsLoading(false);
       }
+      window.history.replaceState({}, document.title, window.location.pathname); // Clears query params
+
     } else {
       const storedAccessToken = localStorage.getItem("spotify_access_token");
       const storedRefreshToken = localStorage.getItem("spotify_refresh_token");
@@ -230,7 +232,7 @@ export const useSpotifyAuth = () => {
 
   const spotifyAPICall = useCallback(
     async (endpoint, method = "GET", body = null) => {
-      const currentAccessToken = localStorage.getItem("spotify_access_token");
+      let currentAccessToken = localStorage.getItem("spotify_access_token");
 
       if (!currentAccessToken) {
         if (!SPOTIFY_CLIENT_ID) {
@@ -255,7 +257,8 @@ export const useSpotifyAuth = () => {
         });
         return response.data;
       } catch (error) {
-        if (error.response && error.response.status === 401) {
+        if (error.response && error.response.status === 403) {
+          console.log(error);
           setError("Token expired");
           if (!SPOTIFY_CLIENT_ID) {
             setError("Spotify Client ID is not configured");

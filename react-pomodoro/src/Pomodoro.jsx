@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import theWeeknd from "./assets/theWeeknd.png";
 import spotifyIcon from "./assets/spotifyIcon.png";
+import { useSpotifyAuth } from "./useSpotifyAuth";
 
 function Pomodoro() {
   //Change if the timer active or not
@@ -20,17 +21,177 @@ function Pomodoro() {
   //Show spotify play banner if active
   const [showSpotify, setShowSpotify] = useState(true);
 
+  //Hook for spotify auth
+  const { accessToken, error, isLoading, login, logout, spotifyAPICall } =
+    useSpotifyAuth();
+
   //function to check if spotify is currently playing
-  const [isSpotifyPlaying, setIsSpotifyPlaying] = useState(true);
+  const [isSpotifyPlaying, setIsSpotifyPlaying] = useState(false);
   //Set spotify track function
   const [currentTrack, setCurrentTrack] = useState({
-    name: "Blinding Lights",
-    artist: "The Weeknd",
-    duration: "3:20",
-    currentTime: "2:25",
-    progress: 72, // percentage
+    name: "No track playing",
+    artist: "Connect to spotify",
+    duration: "0:00",
+    currentTime: "0:00",
+    progress: 0, // percentage
     albumArt: theWeeknd,
   });
+
+  //Get current song playing
+  const getCurrentPlayback = async () => {
+    if (!accessToken) {
+      return;
+    }
+
+    try {
+      const data = await spotifyAPICall("/me/player/currently-playing");
+
+      if (data && data.item) {
+        setCurrentTrack({
+          name: data.item.name,
+          artist: data.item.artists.map((artist) => artist.name).join(", "),
+          duration: formatSpotifyTime(data.item.duration_ms),
+          currentTime: formatSpotifyTime(data.progress_ms),
+          progress: Math.round(
+            (data.progress_ms / data.item.duration_ms) * 100
+          ),
+          albumArt: data.item.album.images[0]?.url || theWeeknd,
+        });
+        setIsSpotifyPlaying(data.is_playing);
+      } else {
+        // No track playing
+        setCurrentTrack({
+          name: "No track playing",
+          artist: "Start playing music on Spotify",
+          duration: "0:00",
+          currentTime: "0:00",
+          progress: 0,
+          albumArt: theWeeknd,
+        });
+        setIsSpotifyPlaying(false);
+      }
+    } catch (err) {
+      console.error("Error getting current playback:", err);
+    }
+  };
+
+  //format spotify progress time
+  const formatSpotifyTime = (ms) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  //toggle playbacks controls
+  const toggleSpotifyPlaybacks = async () => {
+    if (!accessToken) {
+      login();
+      return;
+    }
+
+    try {
+      if (isSpotifyPlaying) {
+        await spotifyAPICall("/me/player/pause", "PUT");
+      } else {
+        await spotifyAPICall("/me/player/play", "PUT");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const previousTrack = async () => {
+    if (!accessToken) {
+      return;
+    }
+
+    try {
+        await spotifyAPICall("/me/player/previous", "POST");
+        setTimeout(getCurrentPlayback, 500);
+      } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const nextTrack = async () => {
+    if (!accessToken) {
+      return;
+    }
+
+    try {
+      await spotifyAPICall("/me/player/next", "POST");
+      setTimeout(getCurrentPlayback, 500);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+    const closeSpotifyBanner = () => {
+    setShowSpotify(false);
+    // Clear the playback polling when banner is closed
+    if (playbackIntervalRef.current) {
+      clearInterval(playbackIntervalRef.current);
+    }
+  };
+
+  const checkAccountType = async () => {
+  if (!accessToken) {
+    console.log("No access token available");
+    return;
+  }
+
+  try {
+    const userData = await spotifyAPICall("/me");
+    console.log("=== SPOTIFY ACCOUNT INFO ===");
+    console.log("Display Name:", userData.display_name);
+    console.log("Email:", userData.email);
+    console.log("Country:", userData.country);
+    console.log("Product (Subscription):", userData.product);
+    console.log("Followers:", userData.followers.total);
+    console.log("=== END ACCOUNT INFO ===");
+    
+    if (userData.product === 'free') {
+      console.log("🚫 FREE ACCOUNT - Playback controls will not work");
+      alert("Free Spotify account detected. Playback controls require Spotify Premium.");
+    } else if (userData.product === 'premium') {
+      console.log("✅ PREMIUM ACCOUNT - Playback controls should work");
+    } else {
+      console.log("❓ Unknown subscription type:", userData.product);
+    }
+    
+    return userData;
+  } catch (error) {
+    console.error("Error checking account type:", error);
+    console.log("Full error object:", error);
+  }
+};
+
+     const openSpotify = () => {
+    window.open('spotify:', '_blank');
+  };
+
+  const playbackIntervalRef = useRef(null);
+
+  useEffect(() => {
+  if (accessToken) {
+    getCurrentPlayback();
+
+    playbackIntervalRef.current = setInterval(() => {
+      getCurrentPlayback(); // ADD () here - you're missing the function call!
+    }, 2000);
+  } else {
+    if (playbackIntervalRef.current) {
+      clearInterval(playbackIntervalRef.current);
+    }
+  }
+
+  // Add cleanup function
+  return () => {
+    if (playbackIntervalRef.current) {
+      clearInterval(playbackIntervalRef.current);
+    }
+  };
+}, [accessToken]);
 
   //Formatting the timer in MM:SS
   const formatTime = (seconds) => {
@@ -109,22 +270,6 @@ function Pomodoro() {
     setIsSpotifyPlaying(!isSpotifyPlaying);
   };
 
-  const previousTrack = () => {
-    // add logic with API
-  };
-
-  const nextTrack = () => {
-    // add logic with API
-  };
-
-  const closeSpotifyBanner = () => {
-    setShowSpotify(false);
-  };
-
-  const openSpotify = () => {
-    //add logic with API
-  };
-
   //A list of preset times
   const presetTime = [
     { name: "5m", seconds: 5 * 60 },
@@ -159,6 +304,32 @@ function Pomodoro() {
     <>
       <div className="pomodoro-container">
         <h1>Pomodoro+</h1>
+
+        {/* DEBUG: Show authentication status
+        <div className="auth-debug" style={{ 
+          padding: '10px', 
+          margin: '10px 0', 
+          backgroundColor: '#f0f0f0', 
+          borderRadius: '5px',
+          fontSize: '14px'
+        }}>
+          <h4>🔧 Auth Debug Info:</h4>
+          <p><strong>Access Token:</strong> {accessToken ? '✅ Connected' : '❌ Not connected'}</p>
+          <p><strong>Loading:</strong> {isLoading ? 'Yes' : 'No'}</p>
+          <p><strong>Error:</strong> {error || 'None'}</p>
+          {accessToken && (
+            <div>
+              <button onClick={logout} style={{ marginRight: '10px' }}>Logout</button>
+              <button onClick={getCurrentPlayback}>Test API Call</button>
+            </div>
+          )}
+        </div>
+
+        <button onClick={checkAccountType} style={{ marginLeft: '10px' }}>
+  Check Account Type
+</button> */}
+        
+
         <div
           className={`liveTimer-container ${
             !isRunning ? "double-clickable" : ""
@@ -270,6 +441,11 @@ function Pomodoro() {
                 </div>
 
                 <div className="playback-controls">
+                  {/* {!accessToken} ? (
+                    <button onClick={login} className="spotify-login-btn">
+                      Login to Spotify
+                    </button>
+                  ) */}
                   <button onClick={previousTrack} className="control-btn">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -288,7 +464,7 @@ function Pomodoro() {
                   </button>
 
                   <button
-                    onClick={toggleSpotifyPlayback}
+                    onClick={toggleSpotifyPlaybacks}
                     className="control-btn play-pause-btn"
                   >
                     {isSpotifyPlaying ? (
