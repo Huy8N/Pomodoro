@@ -1,4 +1,5 @@
 import Pomodoro from "./Pomodoro"
+import Settings from "./Settings"
 import "./App.css";
 
 function App() {
@@ -7,7 +8,8 @@ function App() {
   
   
     
-    <Pomodoro></Pomodoro>
+    <Pomodoro></Pomodoro> 
+    <Settings></Settings>
   
   
   

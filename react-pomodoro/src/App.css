@@ -539,3 +539,90 @@
 .spotify-banner {
   box-sizing: border-box;
 }
+
+
+.settings-container {
+  height: 320px;
+  width: 320px;
+  border-radius: 20px;
+  background-color: #2a2a2a;
+  color: white;
+  padding: 20px;
+}
+
+.settings-container h1 {
+  text-align: center;
+  padding-top: 20px;
+  margin: 0 0 40px 0;
+  font-size: 2rem;
+}
+
+.spotify-connection {
+  display: flex;
+  justify-content: center;
+}
+
+.connected-state {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background-color: #1a1a1a;
+  padding: 15px 20px;
+  border-radius: 10px;
+  border: 1px solid #444;
+}
+
+.spotify-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spotify-setting-logo {
+  width: 24px;
+  height: 24px;
+  display: flex;
+}
+
+.connected-text {
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.disconnect-btn {
+  background-color: #444;
+  color: white;
+  border: 1px solid #666;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.disconnect-btn:hover {
+  background-color: #555;
+}
+
+.connect-btn {
+  background-color: #1db954;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.connect-btn:hover {
+  background-color: #1ed760;
+}
+
+.error-message {
+  color: #ff6b6b;
+  margin-top: 15px;
+  text-align: center;
+}
