@@ -1,6 +1,6 @@
 import Pomodoro from "./Pomodoro";
 import Settings from "./Settings";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import "./App.css";
 
 function App() {
@@ -17,9 +17,9 @@ function App() {
   });
 
   //When settings is changed
-  const handleSettingChange = (newSettings) => {
-    setSettings(newSettings);
-  };
+  const handleSettingChange = useCallback(
+    (newSettings) => setSettings(newSettings), []
+  );
 
   //switch to settings view
   const openSettings = () => {
