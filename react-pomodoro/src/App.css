@@ -28,6 +28,7 @@
 .liveTimer-container {
   width: 200px;
   height: 200px;
+  
   background: #4a4a4a;
   border-radius: 50%;
   display: flex;
@@ -625,4 +626,29 @@
   color: #ff6b6b;
   margin-top: 15px;
   text-align: center;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.settings-btn svg {
+  background-color: #4a4a4a;
+  border-radius: 50%;
+  width: 25px;      /* Add explicit SVG size */
+  height: 25px;
+  color: white;     /* Set icon color */
+  padding: 5px;
+  position: absolute;
+  top: 15px;
+  right: 20px;  
 }
