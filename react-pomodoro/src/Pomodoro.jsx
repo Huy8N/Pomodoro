@@ -3,7 +3,9 @@ import defaultAlbumCover from "./assets/defaultAlbumCover.png";
 import spotifyIcon from "./assets/spotifyIcon.png";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 
-function Pomodoro() {
+function Pomodoro({ settings = {}, onOpenSettings }) {
+  const { playSoundOnEnd = false, pauseMusicOnPause = false } = settings;
+
   //Change if the timer active or not
   const [isRunning, setIsRunning] = useState(false);
   // Keep track of time left
@@ -27,6 +29,7 @@ function Pomodoro() {
 
   //function to check if spotify is currently playing
   const [isSpotifyPlaying, setIsSpotifyPlaying] = useState(false);
+  const [wasPlayingBeforePause, setWasPlayingBeforePause] = useState(false);
   //Set spotify track function
   const [currentTrack, setCurrentTrack] = useState({
     name: "No track playing",
@@ -36,6 +39,28 @@ function Pomodoro() {
     progress: 0, // percentage
     albumArt: defaultAlbumCover,
   });
+
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio();
+    audioRef.current.src =
+      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg";
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playTimerEndSound = () => {
+    if (playSoundOnEnd && audioRef.current) {
+      audioRef.current.play().catch((e) => {
+        console.log("Could not play timer end sound", e);
+      });
+    }
+  };
 
   //Get current song playing
   const getCurrentPlayback = async () => {
@@ -55,7 +80,7 @@ function Pomodoro() {
           progress: Math.round(
             (data.progress_ms / data.item.duration_ms) * 100
           ),
-          albumArt: data.item.album.images[0]?.url || theWeeknd,
+          albumArt: data.item.album.images[0]?.url || defaultAlbumCover,
         });
         setIsSpotifyPlaying(data.is_playing);
       } else {
@@ -66,7 +91,7 @@ function Pomodoro() {
           duration: "0:00",
           currentTime: "0:00",
           progress: 0,
-          albumArt: theWeeknd,
+          albumArt: defaultAlbumCover,
         });
         setIsSpotifyPlaying(false);
       }
@@ -125,51 +150,6 @@ function Pomodoro() {
     } catch (error) {
       console.log(error);
     }
-  };
-  const closeSpotifyBanner = () => {
-    setShowSpotify(false);
-    // Clear the playback polling when banner is closed
-    if (playbackIntervalRef.current) {
-      clearInterval(playbackIntervalRef.current);
-    }
-  };
-
-  const checkAccountType = async () => {
-    if (!accessToken) {
-      console.log("No access token available");
-      return;
-    }
-
-    try {
-      const userData = await spotifyAPICall("/me");
-      console.log("=== SPOTIFY ACCOUNT INFO ===");
-      console.log("Display Name:", userData.display_name);
-      console.log("Email:", userData.email);
-      console.log("Country:", userData.country);
-      console.log("Product (Subscription):", userData.product);
-      console.log("Followers:", userData.followers.total);
-      console.log("=== END ACCOUNT INFO ===");
-
-      if (userData.product === "free") {
-        console.log("🚫 FREE ACCOUNT - Playback controls will not work");
-        alert(
-          "Free Spotify account detected. Playback controls require Spotify Premium."
-        );
-      } else if (userData.product === "premium") {
-        console.log("✅ PREMIUM ACCOUNT - Playback controls should work");
-      } else {
-        console.log("❓ Unknown subscription type:", userData.product);
-      }
-
-      return userData;
-    } catch (error) {
-      console.error("Error checking account type:", error);
-      console.log("Full error object:", error);
-    }
-  };
-
-  const openSpotify = () => {
-    window.open("spotify:", "_blank");
   };
 
   const playbackIntervalRef = useRef(null);
@@ -233,7 +213,22 @@ function Pomodoro() {
 
   // Start or Pause timer
   const toggleTimer = () => {
-    setIsRunning(!isRunning);
+    const newRunningState = !isRunning;
+
+    if (pauseMusicOnPause && accessToken) {
+      if (newRunningState) {
+        if (wasPlayingBeforePause) {
+          resumeSpotifyMusic();
+          setWasPlayingBeforePause(false);
+        }
+      } else {
+        if (isSpotifyPlaying) {
+          setWasPlayingBeforePause(true);
+          pauseSpotifyMusic();
+        }
+      }
+    }
+    setIsRunning(newRunningState);
   };
 
   // reset timer
@@ -306,31 +301,7 @@ function Pomodoro() {
     <>
       <div className="pomodoro-container">
         <h1>Pomodoro+</h1>
-
-        {/* DEBUG: Show authentication status
-        <div className="auth-debug" style={{ 
-          padding: '10px', 
-          margin: '10px 0', 
-          backgroundColor: '#f0f0f0', 
-          borderRadius: '5px',
-          fontSize: '14px'
-        }}>
-          <h4>🔧 Auth Debug Info:</h4>
-          <p><strong>Access Token:</strong> {accessToken ? '✅ Connected' : '❌ Not connected'}</p>
-          <p><strong>Loading:</strong> {isLoading ? 'Yes' : 'No'}</p>
-          <p><strong>Error:</strong> {error || 'None'}</p>
-          {accessToken && (
-            <div>
-              <button onClick={logout} style={{ marginRight: '10px' }}>Logout</button>
-              <button onClick={getCurrentPlayback}>Test API Call</button>
-            </div>
-          )}
-        </div>
-
-        <button onClick={checkAccountType} style={{ marginLeft: '10px' }}>
-  Check Account Type
-</button> */}
-
+        <button className="settings=btn" onClick={onOpenSettings}></button>
         <div
           className={`liveTimer-container ${
             !isRunning ? "double-clickable" : ""
@@ -485,11 +456,6 @@ function Pomodoro() {
                 </div>
 
                 <div className="playback-controls">
-                  {/* {!accessToken} ? (
-                    <button onClick={login} className="spotify-login-btn">
-                      Login to Spotify
-                    </button>
-                  ) */}
                   <button onClick={previousTrack} className="control-btn">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

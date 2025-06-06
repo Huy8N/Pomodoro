@@ -1,20 +1,32 @@
 import { useState, useEffect } from "react";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 import spotifyIcon from "./assets/spotifyIcon.png";
-import Pomodoro from "./Pomodoro";
 
-function Settings() {
-  // Hooks
+function Settings({ onSettingChange, onCloseSettings }) {
+  // Hooks - using React state instead of localStorage for Claude environment
+  const [playSoundOnEnd, setPlaySoundOnEnd] = useState(false);
+  const [pauseMusicOnPause, setPauseMusicOnPause] = useState(false);
+
+  //spotify connection status
   const [isConnect, setIsConnect] = useState(false);
-  const [isPlaylist1, setIsPlaylist1] = useState(false);
-  const [isPlaylist2, setIsPlaylist2] = useState(false);
   const [isError, setIsError] = useState(false);
-
-  const {toggleTimer} = Pomodoro();
 
   //Hook for spotify auth
   const { accessToken, error, isLoading, login, logout, spotifyAPICall } =
     useSpotifyAuth();
+
+  useEffect(() => {
+    // In your actual app, uncomment these localStorage lines:
+    // localStorage.setItem("playSoundOnEnd", JSON.stringify(playSoundOnEnd));
+    // localStorage.setItem("pauseMusicOnPause", JSON.stringify(pauseMusicOnPause));
+
+    if (onSettingChange) {
+      onSettingChange({
+        playSoundOnEnd,
+        pauseMusicOnPause,
+      });
+    }
+  }, [playSoundOnEnd, pauseMusicOnPause, onSettingChange]);
 
   //check if user is login
   const checkSpotifyConnected = async () => {
@@ -23,6 +35,7 @@ function Settings() {
     }
   };
 
+  //Handling login and logout
   const handleSpotifyConnection = () => {
     if (accessToken) {
       logout();
@@ -31,40 +44,33 @@ function Settings() {
     }
   };
 
-  const endOfTimer = async () => {
-    if (toggleTimer) {
-
-    }
-  }
-
-  const [switch1, setSwitch1] = useState(false);
-  const [switch2, setSwitch2] = useState(false);
-
-
-  const ToggleSwitch = ({isOn, onToggle, label}) => {
+  const ToggleSwitch = ({ isOn, onToggle, label }) => {
     return (
-        <div className="toggle-container">
-            <span className="toggle-label">{label}</span>
-            <div
-                className={`toggle-switch ${isOn ? 'active' : ''}`}
-                onClick={onToggle}
-            >
-                <div className="toggle-slider"></div>
-            </div>
+      <div className="toggle-container">
+        <span className="toggle-label">{label}</span>
+        <div
+          className={`toggle-switch ${isOn ? "active" : ""}`}
+          onClick={onToggle}
+        >
+          <div className="toggle-slider"></div>
         </div>
-    )
+      </div>
+    );
   };
 
   return (
     <>
       <div className="settings-container">
         <h1>Settings</h1>
+        <div className="settings-header">
+            <button className="back-btn" onClick={onCloseSettings}>Back</button>
+        </div>
         <div className="spotify-connection">
           {accessToken ? (
             <div className="connected-state">
               <div className="spotify-info">
                 <div className="spotify-setting-logo">
-                  <img src={spotifyIcon}></img>
+                  <img src={spotifyIcon} alt="Spotify" />
                 </div>
                 <span className="connected-text">Connected</span>
               </div>
@@ -78,22 +84,31 @@ function Settings() {
             </div>
           ) : (
             <button
-              className="connected-btn"
+              className="connect-btn"
               onClick={handleSpotifyConnection}
               disabled={isLoading}
             >
-              {isLoading ? "Loading" : "Connected"}
+              {isLoading ? "Loading" : "Connect"}
             </button>
           )}
         </div>
-        <div className="pause-music">
-            <div>
-                <ToggleSwitch
-                    isOn={switch1}
-                    onToggle={() => setSwitch1(!switch1)}
-                    label="Pause music on timer pause"
-                />
-            </div>
+
+        <div className="timer-settings">
+          <div className="setting-item">
+            <ToggleSwitch
+              isOn={playSoundOnEnd}
+              onToggle={() => setPlaySoundOnEnd(!playSoundOnEnd)}
+              label="Play sound when timer ends"
+            />
+          </div>
+
+          <div className="setting-item">
+            <ToggleSwitch
+              isOn={pauseMusicOnPause}
+              onToggle={() => setPauseMusicOnPause(!pauseMusicOnPause)}
+              label="Pause music on timer pause"
+            />
+          </div>
         </div>
       </div>
     </>
