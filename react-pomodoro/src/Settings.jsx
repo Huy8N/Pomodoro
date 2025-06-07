@@ -85,7 +85,6 @@ function Settings({ onSettingChange, onCloseSettings }) {
                 <div className="spotify-setting-logo">
                   <img src={spotifyIcon} alt="Spotify" />
                 </div>
-                <span className="connected-text">Connected</span>
               </div>
               <button
                 className="disconnect-btn"

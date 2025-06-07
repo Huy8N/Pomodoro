@@ -56,11 +56,20 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
 
   const playTimerEndSound = () => {
     if (playSoundOnEnd && audioRef.current) {
+      audioRef.current.loop = true;
       audioRef.current.play().catch((e) => {
         console.log("Could not play timer end sound", e);
       });
     }
   };
+
+  const stopTimerSound = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
 
   //Get current song playing
   const getCurrentPlayback = async () => {
@@ -199,6 +208,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setIsRunning(false);
+            playTimerEndSound();
             setShowTimerUp(true);
             return 0;
           }
@@ -209,7 +219,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [isRunning, timeLeft]);
+  }, [isRunning, timeLeft, playSoundOnEnd]);
 
   // Start or Pause timer
   const toggleTimer = () => {
@@ -251,6 +261,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
 
   const closeTimerUpPopup = () => {
     setShowTimerUp(false);
+    stopTimerSound();
   };
 
   //Selecting a custom time
