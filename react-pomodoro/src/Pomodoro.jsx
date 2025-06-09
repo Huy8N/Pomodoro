@@ -201,25 +201,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     }
   };
 
-  //Update the timer
-  useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            playTimerEndSound();
-            setShowTimerUp(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      clearInterval(intervalRef.current);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [isRunning, timeLeft, playSoundOnEnd]);
+  
 
   // Start or Pause timer
   const toggleTimer = () => {
