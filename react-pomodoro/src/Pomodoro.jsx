@@ -247,7 +247,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     setTimeLeft(currentDuration);
   };
 
-  // double cliking on timer to show menu
+  // single cliking on timer to show menu
   const singleClickOnTimer = () => {
     //Don't allow double click if timer is running
     if (isRunning) return;
