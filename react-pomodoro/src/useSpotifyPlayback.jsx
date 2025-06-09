@@ -44,75 +44,62 @@ export const useSpotifyPlayback = () => {
       } else {
         setCurrentTrack(NO_TRACK_PLAYING);
         setIsSpotifyPlaying(false);
-        }
+      }
     } catch (error) {
       console.error("Error getting current playback:", error);
     }
   };
 
-
   useEffect(() => {
     if (accessToken) {
-        getCurrentPlayback();
-        playbackIntervalRef.current = setInterval(getCurrentPlayback, 1000);
+      getCurrentPlayback();
+      playbackIntervalRef.current = setInterval(getCurrentPlayback, 1000);
     }
     return () => clearInterval(playbackIntervalRef.current);
   }, [accessToken, spotifyAPICall]);
 
-
   const togglePlayPause = async () => {
     if (!accessToken) {
-        login();
-        return;
+      login();
+      return;
     }
-    const endpoint = isSpotifyPlaying ? '/me/player/pause' : '/me/player/play';
-    await spotifyAPICall(endpoint, 'PUT');
+    const endpoint = isSpotifyPlaying ? "/me/player/pause" : "/me/player/play";
+    await spotifyAPICall(endpoint, "PUT");
     setTimeout(getCurrentPlayback, 500);
   };
 
-
-
   const nextTrack = async () => {
     if (!accessToken) return;
-    await spotifyAPICall('/me/player/next', 'POST');
+    await spotifyAPICall("/me/player/next", "POST");
     setTimeout(getCurrentPlayback, 500);
-  }
+  };
 
   const previousTrack = async () => {
     if (!accessToken) return;
-    await spotifyAPICall('/me/player/previous', 'POST');
+    await spotifyAPICall("/me/player/previous", "POST");
     setTimeout(getCurrentPlayback, 500);
-  }
+  };
 
   const puaseMusic = () => {
     if (isSpotifyPlaying) {
-        spotifyAPICall('/me/player/pause', 'PUT');
+      spotifyAPICall("/me/player/pause", "PUT");
     }
-  }
+  };
 
   const resumeMusic = () => {
-    spotifyAPICall('/me/player/play', 'PUT');
-  }
+    spotifyAPICall("/me/player/play", "PUT");
+  };
 
   return {
     currentTrack,
     isSpotifyPlaying,
     accessToken,
     controls: {
-        togglePlayPause,
-        nextTrack,
-        previousTrack,
-        puaseMusic,
-        resumeMusic
-    }
+      togglePlayPause,
+      nextTrack,
+      previousTrack,
+      puaseMusic,
+      resumeMusic,
+    },
   };
-
-
-
-
-
-
-
-
-
 };
