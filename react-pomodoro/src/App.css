@@ -28,6 +28,7 @@
 .liveTimer-container {
   width: 200px;
   height: 200px;
+  aspect-ratio: 1;
   background: #4a4a4a;
   border-radius: 50%;
   display: flex;
@@ -35,7 +36,7 @@
   justify-content: center;
   flex-direction: column;
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3), 0 4px 15px rgba(0, 0, 0, 0.4);
-  margin: 20px 0;
+  margin: 0px;
   position: relative;
   transition: all 0.2s ease;
 }
@@ -625,4 +626,96 @@
   color: #ff6b6b;
   margin-top: 15px;
   text-align: center;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.settings-btn svg {
+  background-color: #4a4a4a;
+  border-radius: 50%;
+  width: 25px;      /* Add explicit SVG size */
+  height: 25px;
+  color: white;     /* Set icon color */
+  padding: 5px;
+  position: absolute;
+  top: 15px;
+  right: 20px;  
+}
+
+.back-btn {
+   background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.back-btn svg {
+  background-color: #4a4a4a;
+  border-radius: 50%;
+  width: 25px;      /* Add explicit SVG size */
+  height: 25px;
+  color: white;     /* Set icon color */
+  padding: 5px;
+  position: absolute;
+  top: 20px;
+  left: 20px; 
+}
+
+/* ===== Toggle switch ===== */
+.toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 0;
+  font-family: Poppins, sans-serif;
+}
+
+.toggle-label {
+  font-size: 14px;
+}
+
+.toggle-switch {
+  width: 46px;          /* overall pill width  */
+  height: 24px;         /* overall pill height */
+  background: #555;     /* OFF state colour    */
+  border-radius: 12px;  /* full pill           */
+  position: relative;
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+
+.toggle-switch.active {
+  background: #1db954;  /* ON state colour (Spotify green) */
+}
+
+.toggle-slider {
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.25s ease;
+}
+
+.toggle-switch.active .toggle-slider {
+  transform: translateX(22px); /* slide knob to the right */
 }

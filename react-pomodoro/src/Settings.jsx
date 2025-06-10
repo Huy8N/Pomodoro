@@ -62,9 +62,22 @@ function Settings({ onSettingChange, onCloseSettings }) {
     <>
       <div className="settings-container">
         <h1>Settings</h1>
-        <div className="settings-header">
-            <button className="back-btn" onClick={onCloseSettings}>Back</button>
-        </div>
+        <button className="back-btn" onClick={onCloseSettings}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="1.5"
+            stroke="currentColor"
+            class="size-6"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+            />
+          </svg>
+        </button>
         <div className="spotify-connection">
           {accessToken ? (
             <div className="connected-state">
@@ -72,7 +85,6 @@ function Settings({ onSettingChange, onCloseSettings }) {
                 <div className="spotify-setting-logo">
                   <img src={spotifyIcon} alt="Spotify" />
                 </div>
-                <span className="connected-text">Connected</span>
               </div>
               <button
                 className="disconnect-btn"
