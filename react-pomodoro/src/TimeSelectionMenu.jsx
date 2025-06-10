@@ -8,7 +8,7 @@ export function TimerSelectionMenu({ onSelect, onClose }) {
   };
 
   return (
-    <div className="time-menu-overlay" onClick={onClse}>
+    <div className="time-menu-overlay" onClick={onClose}>
       <div className="time-menu" onClick={(e) => e.stopPropagation()}>
         <h3>Select Time</h3>
         <div className="time-options">
@@ -28,5 +28,5 @@ export function TimerSelectionMenu({ onSelect, onClose }) {
       </div>
     </div>
   );
-  
+
 }

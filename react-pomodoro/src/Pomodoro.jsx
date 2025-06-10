@@ -67,7 +67,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
         audioRef.current.play();
       }
     }
-  }, [timeLeft, playSoundOnEnd()]);
+  }, [timeLeft, playSoundOnEnd, isRunning]);
 
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
@@ -84,6 +84,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
 
   return (
     <>
+    <div className="app-container">
       <div className="pomodoro-container">
         <h1>Pomodoro+</h1>
         <button className="settings-btn" onClick={onOpenSettings}>
@@ -109,7 +110,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
         </button>
 
         <div
-          className="liveTimer_container"
+          className={`liveTimer-container ${!isRunning ? "double-clickable" : ""}`}
           onClick={() => !isRunning && setShowTimeMenu(true)}
         >
           <p>{formattedTime}</p>
@@ -140,6 +141,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
         />
       )}
       {showTimerUp && <TimerUpPopup onClose={() => setShowTimerUp(false)} />}
+    </div>
     </>
   );
 }

@@ -17,4 +17,4 @@ export const CUSTOM_TIME_OPTIONS = [
   { label: "4 hours", seconds: 240 * 60 },
 ];
 
-export const DEFAULT_TIMER_DURATION = 5 * 60;
+export const DEFAULT_TIMER_DURATION = 0.1 * 60;

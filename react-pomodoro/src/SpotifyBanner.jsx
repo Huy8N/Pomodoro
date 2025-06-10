@@ -86,6 +86,12 @@ export function SpotifyBanner({ track, isPlaying, controls }) {
             <img src={track.albumArt} alt="Album Art" className="album-art" />
           </div>
 
+          <div className="track-details-and-controls">
+            <div className="track-info">
+              <h3 className="track-title">{track.name}</h3>
+              <p className="artist-name">{track.artist}</p>
+            </div>
+
           <div className="progress-container">
             <span className="current-time">{track.currentTime}</span>
             <div className="progress-bar">
@@ -115,6 +121,7 @@ export function SpotifyBanner({ track, isPlaying, controls }) {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
