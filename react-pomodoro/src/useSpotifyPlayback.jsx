@@ -80,7 +80,7 @@ export const useSpotifyPlayback = () => {
     setTimeout(getCurrentPlayback, 500);
   };
 
-  const puaseMusic = () => {
+  const pauseMusic = () => {
     if (isSpotifyPlaying) {
       spotifyAPICall("/me/player/pause", "PUT");
     }
@@ -98,7 +98,7 @@ export const useSpotifyPlayback = () => {
       togglePlayPause,
       nextTrack,
       previousTrack,
-      puaseMusic,
+      pauseMusic,
       resumeMusic,
     },
   };

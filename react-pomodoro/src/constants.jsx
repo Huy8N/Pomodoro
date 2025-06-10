@@ -5,7 +5,7 @@ export const PRESET_TIMES = [
     { name: "20m", seconds: 20 * 60 },
 ]
 
-const CUSTOM_TIME_OPTIONS = [
+export const CUSTOM_TIME_OPTIONS = [
   { label: "25 min", seconds: 25 * 60 },
   { label: "30 min", seconds: 30 * 60 },
   { label: "35 min", seconds: 35 * 60 },
