@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { usePomodoroTimer } from "./usePomodoroTimer";
 import { useSpotifyPlayback } from "./useSpotifyPlayback";
 import { PRESET_TIMES, DEFAULT_TIMER_DURATION } from "./constants";
-
 import { SpotifyBanner } from "./SpotifyBanner";
 import { TimerControls } from "./TimerControls";
 import { TimerSelectionMenu } from "./TimeSelectionMenu";
@@ -10,6 +9,11 @@ import { TimerUpPopup } from "./TimerUpPopup";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
   const { playSoundOnEnd = false, pauseMusicOnPause = false } = settings;
+
+  const [activePreset, setActivePreset] = useState(1);
+  const [showTimeMenu, setShowTimeMenu] = useState(false);
+  const [showTimerUp, setShowTimerUp] = useState(false);
+  const [wasPlayingBeforePause, setWasPlayingBeforePause] = useState(false);
 
   const {
     timeLeft,
@@ -27,12 +31,12 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     controls: spotifyControls,
   } = useSpotifyPlayback();
 
-  const [activePreset, setActivePreset] = useState(1);
-  const [showTimeMenu, setShowTimeMenu] = useState(false);
-  const [showTimerUp, setShowTimerUp] = useState(false);
-  const [wasPlayingBeforePause, setWasPlayingBeforePause] = useState(false);
-
   const audioRef = useRef(null);
+  useEffect(() => {
+    audioRef.current = new Audio(
+      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+    );
+  }, []);
 
   useEffect(() => {
     if (!pauseMusicOnPause || !accessToken) return;
@@ -56,22 +60,26 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     spotifyControls,
   ]);
 
-  useEffect(
-    () => {
-      if (timeLeft === 0) {
-        setShowTimeMenu(true);
-        if (playSoundOnEnd) {
-          audioRef.current.play();
-        }
+  useEffect(() => {
+    if (timeLeft === 0 && !isRunning) {
+      setShowTimerUp(true);
+      if (playSoundOnEnd && audioRef.current) {
+        audioRef.current.play();
       }
-    },
-    timeLeft,
-    playSoundOnEnd()
-  );
+    }
+  }, [timeLeft, playSoundOnEnd()]);
 
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
     setActivePreset(index);
+  };
+
+  const handleClosePopup = () => {
+    setShowTimerUp(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
   };
 
   return (

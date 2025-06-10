@@ -73,7 +73,7 @@ export function TimerControls({
       <div className="presets">
         {presets.map((preset, index) => (
           <button
-            className={`preset-btn ${activePreset === index ? "ative" : ""}`}
+            className={`preset-btn ${activePreset === index ? "active" : ""}`}
             key={preset.name}
             oncClick={() => onSelectPreset(preset.seconds, index)}
           >

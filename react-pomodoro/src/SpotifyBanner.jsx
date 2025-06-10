@@ -77,7 +77,7 @@ export function SpotifyBanner({ track, isPlaying, controls }) {
           <img
             src={spotifyIcon}
             alt="Spotify Logo"
-            className="spotify-logo=icon"
+            className="spotify-logo-icon"
           />
         </div>
 
@@ -86,7 +86,7 @@ export function SpotifyBanner({ track, isPlaying, controls }) {
             <img src={track.albumArt} art="Album Art" className="album-art" />
           </div>
 
-          <div className="progress-continer">
+          <div className="progress-container">
             <span className="current-time">{track.currentTime}</span>
             <div className="progress-bar">
               <div
@@ -94,7 +94,7 @@ export function SpotifyBanner({ track, isPlaying, controls }) {
                 style={{ width: `${track.progress}%` }}
               ></div>
             </div>
-            <span className="totat-time">{track.duration}</span>
+            <span className="total-time">{track.duration}</span>
           </div>
 
           <div className="playback-controls">
