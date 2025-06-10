@@ -17,9 +17,17 @@ function App() {
   });
 
   //When settings is changed
-  const handleSettingChange = useCallback(
-    (newSettings) => setSettings(newSettings), []
-  );
+  const handleSettingChange = useCallback((newSettings) => {
+    localStorage.setItem(
+      "playSoundOnEnd",
+      JSON.stringify(newSettings.playSoundOnEnd)
+    );
+    localStorage.setItem(
+      "pauseMusicOnPause",
+      JSON.stringify(newSettings.pauseMusicOnPause)
+    );
+    setSettings(newSettings);
+  }, []);
 
   //switch to settings view
   const openSettings = () => {
@@ -37,6 +45,7 @@ function App() {
         <Pomodoro settings={settings} onOpenSettings={openSettings} />
       ) : (
         <Settings
+        settings={settings}
           onSettingChange={handleSettingChange}
           onCloseSettings={closeSettings}
         />
