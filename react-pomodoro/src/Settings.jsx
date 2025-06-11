@@ -1,39 +1,14 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 import spotifyIcon from "./assets/spotifyIcon.png";
 
-function Settings({ onSettingChange, onCloseSettings }) {
+function Settings({ onSettingChange, onCloseSettings, settings }) {
   // Hooks - using React state instead of localStorage for Claude environment
-  const [playSoundOnEnd, setPlaySoundOnEnd] = useState(false);
-  const [pauseMusicOnPause, setPauseMusicOnPause] = useState(false);
-
-  //spotify connection status
-  const [isConnect, setIsConnect] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const {playSoundOnEnd, pauseMusicOnPause} = settings;
 
   //Hook for spotify auth
   const { accessToken, error, isLoading, login, logout, spotifyAPICall } =
     useSpotifyAuth();
-
-  useEffect(() => {
-    // In your actual app, uncomment these localStorage lines:
-    // localStorage.setItem("playSoundOnEnd", JSON.stringify(playSoundOnEnd));
-    // localStorage.setItem("pauseMusicOnPause", JSON.stringify(pauseMusicOnPause));
-
-    if (onSettingChange) {
-      onSettingChange({
-        playSoundOnEnd,
-        pauseMusicOnPause,
-      });
-    }
-  }, [playSoundOnEnd, pauseMusicOnPause, onSettingChange]);
-
-  //check if user is login
-  const checkSpotifyConnected = async () => {
-    if (!accessToken) {
-      setIsError("Invalid access token");
-    }
-  };
 
   //Handling login and logout
   const handleSpotifyConnection = () => {
@@ -42,6 +17,16 @@ function Settings({ onSettingChange, onCloseSettings }) {
     } else {
       login();
     }
+  };
+
+  const handleToggle = (settingKey) => {
+    // Create the new, updated settings object
+    const newSettings = {
+      ...settings, // 1. Copy all current settings
+      [settingKey]: !settings[settingKey], // 2. Flip the value of the one that was clicked
+    };
+    // 3. Call the function from App.jsx to update the master state
+    onSettingChange(newSettings);
   };
 
   const ToggleSwitch = ({ isOn, onToggle, label }) => {
@@ -109,7 +94,7 @@ function Settings({ onSettingChange, onCloseSettings }) {
           <div className="setting-item">
             <ToggleSwitch
               isOn={playSoundOnEnd}
-              onToggle={() => setPlaySoundOnEnd(!playSoundOnEnd)}
+              onToggle={() => handleToggle('playSoundOnEnd')}
               label="Play sound when timer ends"
             />
           </div>
@@ -117,7 +102,7 @@ function Settings({ onSettingChange, onCloseSettings }) {
           <div className="setting-item">
             <ToggleSwitch
               isOn={pauseMusicOnPause}
-              onToggle={() => setPauseMusicOnPause(!pauseMusicOnPause)}
+              onToggle={() => handleToggle('pauseMusicOnPause')}
               label="Pause music on timer pause"
             />
           </div>
