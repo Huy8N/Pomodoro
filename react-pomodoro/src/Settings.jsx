@@ -90,6 +90,13 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
           )}
         </div>
 
+        <div className="playlist-sync">
+          <h2>Playlist sync for Pomodoro</h2>
+          <div className="playlist-show">
+            
+          </div>
+        </div>
+
         <div className="timer-settings">
           <div className="setting-item">
             <ToggleSwitch
