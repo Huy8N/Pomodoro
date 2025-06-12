@@ -13,7 +13,7 @@ const AUTHORIZE_ENDPOINT = "https://accounts.spotify.com/authorize";
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 //What to have access to
 const SCOPES =
-  "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private";
+  "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private";
 
 //PKCE Flow helper function from spotify doc
 //Generate a key

@@ -8,24 +8,24 @@ function App() {
   const [settings, setSettings] = useState(() => {
     const playSoundOnEnd = localStorage.getItem("playSoundOnEnd");
     const pauseMusicOnPause = localStorage.getItem("pauseMusicOnPause");
+    const workPlaylistId = localStorage.getItem("workPlaylistId");
+    const breakPlaylistId = localStorage.getItem("breakPlaylistId");
+
     return {
       playSoundOnEnd: playSoundOnEnd ? JSON.parse(playSoundOnEnd) : false,
       pauseMusicOnPause: pauseMusicOnPause
         ? JSON.parse(pauseMusicOnPause)
         : false,
+      workPlaylistId: workPlaylistId ? workPlaylistId : null,
+      breakPlaylistId: breakPlaylistId ? breakPlaylistId : null,
     };
   });
 
   //When settings is changed
   const handleSettingChange = useCallback((newSettings) => {
-    localStorage.setItem(
-      "playSoundOnEnd",
-      JSON.stringify(newSettings.playSoundOnEnd)
-    );
-    localStorage.setItem(
-      "pauseMusicOnPause",
-      JSON.stringify(newSettings.pauseMusicOnPause)
-    );
+    Object.keys(newSettings).forEach(key => {
+      localStorage.setItem(key, JSON.stringify(newSettings[key]));
+    });
     setSettings(newSettings);
   }, []);
 
