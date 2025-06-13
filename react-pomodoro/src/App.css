@@ -719,3 +719,33 @@
 .toggle-switch.active .toggle-slider {
   transform: translateX(22px); /* slide knob to the right */
 }
+
+.playlist-selectors {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.playlist-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.playlist-selector label {
+  font-family: Poppins, sans-serif;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.playlist-selector select {
+  width: 100%;
+  padding: 10px;
+  background-color: #4a4a4a;
+  color: white;
+  border: 1px solid #666;
+  border-radius: 8px;
+  font-family: Poppins, sans-serif;
+  font-size: 14px;
+}
