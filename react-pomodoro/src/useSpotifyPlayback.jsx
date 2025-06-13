@@ -62,15 +62,10 @@ export const useSpotifyPlayback = () => {
   const playFromPlaylist = async (playlistId) => {
     if (!playlistId || !accessToken) return;
 
-    const playlistData = await spotifyAPICall(`playlists/${playlistId}/tracks`);
-    
-    //get random track
-    const randomTrack = playlistData[Math.floor(Math.random() * playlistData.item.length)].track;
-    if (!randomTrack) return;
+    await spotifyAPICall('/me/player/shuffle?state=true', 'PUT');
 
+    await spotifyAPICall('/me/player/play', 'PUT', {context_uri: `spotify:playlist:${playlistId}`});
 
-    //play track
-    await spotifyAPICall('/me/player/play', 'PUT', {uris: [randomTrack.uri]});
     setTimeout(getCurrentPlayback, 500);
   }
 
