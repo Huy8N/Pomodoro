@@ -58,6 +58,22 @@ export const useSpotifyPlayback = () => {
     return () => clearInterval(playbackIntervalRef.current);
   }, [accessToken, spotifyAPICall]);
 
+
+  const playFromPlaylist = async (playlistId) => {
+    if (!playlistId || !accessToken) return;
+
+    const playlistData = await spotifyAPICall(`playlists/${playlistId}/tracks`);
+    
+    //get random track
+    const randomTrack = playlistData[Math.floor(Math.random() * playlistData.item.length)].track;
+    if (!randomTrack) return;
+
+
+    //play track
+    await spotifyAPICall('/me/player/play', 'PUT', {uris: [randomTrack.uri]});
+    setTimeout(getCurrentPlayback, 500);
+  }
+
   const togglePlayPause = async () => {
     if (!accessToken) {
       login();
@@ -100,6 +116,7 @@ export const useSpotifyPlayback = () => {
       previousTrack,
       pauseMusic,
       resumeMusic,
+      playFromPlaylist,
     },
   };
 };

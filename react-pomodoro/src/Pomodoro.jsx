@@ -8,7 +8,7 @@ import { TimerSelectionMenu } from "./TimeSelectionMenu";
 import { TimerUpPopup } from "./TimerUpPopup";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
-  const { playSoundOnEnd = false, pauseMusicOnPause = false } = settings;
+  const { playSoundOnEnd = false, pauseMusicOnPause = false,} = settings;
 
   const [activePreset, setActivePreset] = useState(1);
   const [showTimeMenu, setShowTimeMenu] = useState(false);
