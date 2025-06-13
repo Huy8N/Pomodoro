@@ -8,12 +8,15 @@ import { TimerSelectionMenu } from "./TimeSelectionMenu";
 import { TimerUpPopup } from "./TimerUpPopup";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
-  const { playSoundOnEnd = false, pauseMusicOnPause = false } = settings;
+  const { playSoundOnEnd = false, pauseMusicOnPause = false, workPlaylistId, breakPlaylistId} = settings;
 
   const [activePreset, setActivePreset] = useState(1);
   const [showTimeMenu, setShowTimeMenu] = useState(false);
   const [showTimerUp, setShowTimerUp] = useState(false);
   const [wasPlayingBeforePause, setWasPlayingBeforePause] = useState(false);
+
+  const timerStarted = useRef(false);
+  const [popupHasBeenShown, setPopupHasBeenShown] = useState(false);
 
   const {
     timeLeft,
@@ -39,6 +42,21 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
   }, []);
 
   useEffect(() => {
+    if (isRunning && !timerStarted.current) {
+      spotifyControls.playFromPlaylist(workPlaylistId);
+      timerStarted.current = true;
+    } else if (!isRunning) {
+      timerStarted.current = false;
+    }
+  }, [isRunning, workPlaylistId, spotifyControls]);
+
+  useEffect(() => {
+    if (isRunning) {
+      setPopupHasBeenShown(false);
+    }
+  }, [isRunning]);
+
+  useEffect(() => {
     if (!pauseMusicOnPause || !accessToken) return;
 
     if (isRunning) {
@@ -61,13 +79,15 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
   ]);
 
   useEffect(() => {
-    if (timeLeft === 0 && !isRunning) {
+    if (timeLeft === 0 && !isRunning && !popupHasBeenShown) {
       setShowTimerUp(true);
+      setPopupHasBeenShown(true);
       if (playSoundOnEnd && audioRef.current) {
         audioRef.current.play();
       }
+      spotifyControls.playFromPlaylist(breakPlaylistId);
     }
-  }, [timeLeft, playSoundOnEnd, isRunning]);
+  }, [timeLeft, playSoundOnEnd, isRunning, breakPlaylistId, spotifyControls, popupHasBeenShown]);
 
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
@@ -140,7 +160,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
           onClose={() => setShowTimeMenu(false)}
         />
       )}
-      {showTimerUp && <TimerUpPopup onClose={() => setShowTimerUp(false)} />}
+      {showTimerUp && <TimerUpPopup onClose={handleClosePopup} />}
     </div>
     </>
   );

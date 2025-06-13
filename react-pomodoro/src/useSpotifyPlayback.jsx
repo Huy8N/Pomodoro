@@ -58,6 +58,17 @@ export const useSpotifyPlayback = () => {
     return () => clearInterval(playbackIntervalRef.current);
   }, [accessToken, spotifyAPICall]);
 
+
+  const playFromPlaylist = async (playlistId) => {
+    if (!playlistId || !accessToken) return;
+
+    await spotifyAPICall('/me/player/shuffle?state=true', 'PUT');
+
+    await spotifyAPICall('/me/player/play', 'PUT', {context_uri: `spotify:playlist:${playlistId}`});
+
+    setTimeout(getCurrentPlayback, 500);
+  }
+
   const togglePlayPause = async () => {
     if (!accessToken) {
       login();
@@ -100,6 +111,7 @@ export const useSpotifyPlayback = () => {
       previousTrack,
       pauseMusic,
       resumeMusic,
+      playFromPlaylist,
     },
   };
 };

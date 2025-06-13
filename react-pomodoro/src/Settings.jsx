@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 import spotifyIcon from "./assets/spotifyIcon.png";
+import SwitchPlaylist from "./SwitchPlaylist";
+
 
 function Settings({ onSettingChange, onCloseSettings, settings }) {
   // Hooks - using React state instead of localStorage for Claude environment
@@ -89,6 +91,8 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
             </button>
           )}
         </div>
+
+        {accessToken && <SwitchPlaylist settings={settings} onSettingChange={onSettingChange}/>}
 
         <div className="timer-settings">
           <div className="setting-item">
