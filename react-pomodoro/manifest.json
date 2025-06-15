@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Pomodoro+",
+  "version": "1.0.0",
+  "description": "A pomodoro timer with spotify intergration",
+  "icons": {
+    "48": "./public/PomoSpot48.png",
+    "128": "./public/PomoSpot128.png"
+  },
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permission": [
+    "storage",
+    "alarms",
+    "notification",
+    "identity"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permission": [
+    "https://api.spotify.com/*"
+  ]
+}
