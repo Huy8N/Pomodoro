@@ -109,3 +109,13 @@ const exchangeCodeForToken = async (code) => {
 
   return {access_token, refresh_token};
 };
+
+
+
+export const logout = async () => {
+    chrome.storage.local.remove([
+        "spotify_access_token",
+        "spotify_refresh_token",
+        "spotify_code_verifier",
+    ]);
+}
