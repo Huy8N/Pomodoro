@@ -31,12 +31,12 @@ export const login = () => {
     const hashed = await sha256(codeVerifier);
     const codeChallenge = base64encode(hashed);
 
-    await chrome.stroage.local.set({ spotify_code_verifier: codeVerifier });
+    await chrome.storage.local.set({ spotify_code_verifier: codeVerifier });
 
     const params = {
       client_id: SPOTIFY_CLIENT_ID,
       response_type: "code",
-      redirect_uri: chrome.identify.getRedirectURL(),
+      redirect_uri: chrome.identity.getRedirectURL(),
       scope:
         "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private playlist-read-collaborative",
       code_challenge_method: "S256",
@@ -44,7 +44,7 @@ export const login = () => {
     };
 
     const authURL = `https://accounts.spotify.com/authroize?${
-      new URLSearchParams(params).toString
+      new URLSearchParams(params).toString()
     }`;
 
     chrome.identity.launchWebAuthFlow(
@@ -91,7 +91,7 @@ const exchangeCodeForToken = async (code) => {
 
   const reponse = await axios.post(
     TOKEN_ENDPOINT,
-    new URLSearchParams(payload).toString,
+    new URLSearchParams(payload).toString(),
     { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
 
