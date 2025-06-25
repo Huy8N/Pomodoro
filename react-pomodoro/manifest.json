@@ -10,7 +10,7 @@
   "action": {
     "default_popup": "index.html"
   },
-  "permission": [
+  "permissions": [
     "storage",
     "alarms",
     "notification",
@@ -19,7 +19,10 @@
   "background": {
     "service_worker": "background.js"
   },
-  "host_permission": [
+  "host_permissions": [
     "https://api.spotify.com/*"
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self"
+  }
 }
