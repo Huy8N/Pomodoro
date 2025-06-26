@@ -43,9 +43,9 @@ export const login = () => {
       code_challenge: codeChallenge,
     };
 
-    const authURL = `https://accounts.spotify.com/authroize?${
-      new URLSearchParams(params).toString()
-    }`;
+    const authURL = `https://accounts.spotify.com/authorize?${new URLSearchParams(
+      params
+    ).toString()}`;
 
     chrome.identity.launchWebAuthFlow(
       {
@@ -65,7 +65,7 @@ export const login = () => {
         }
         try {
           const token = await exchangeCodeForToken(code);
-          resolve(tokens);
+          resolve(token);
         } catch (error) {
           reject(error);
         }
@@ -83,7 +83,7 @@ const exchangeCodeForToken = async (code) => {
   }
   const payload = {
     client_id: SPOTIFY_CLIENT_ID,
-    grant_type: "authorization code",
+    grant_type: "authorization_code",
     code,
     redirect_uri: chrome.identity.getRedirectURL(),
     code_verifier: spotify_code_verifier,
@@ -95,27 +95,24 @@ const exchangeCodeForToken = async (code) => {
     { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
   );
 
-  const {access_token, refresh_token} = reponse.data;
-  if(!access_token) {
+  const { access_token, refresh_token } = reponse.data;
+  if (!access_token) {
     throw new Error("No access token found");
   }
-
 
   await chrome.storage.local.set({
     spotify_access_token: access_token,
     spotify_refresh_token: refresh_token,
   });
-  await chrome.stroage.local.remove('spotify_code_verifier');
+  await chrome.storage.local.remove("spotify_code_verifier");
 
-  return {access_token, refresh_token};
+  return { access_token, refresh_token };
 };
 
-
-
 export const logout = async () => {
-    chrome.storage.local.remove([
-        "spotify_access_token",
-        "spotify_refresh_token",
-        "spotify_code_verifier",
-    ]);
-}
+  chrome.storage.local.remove([
+    "spotify_access_token",
+    "spotify_refresh_token",
+    "spotify_code_verifier",
+  ]);
+};

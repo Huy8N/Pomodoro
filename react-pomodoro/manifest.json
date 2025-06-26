@@ -20,7 +20,8 @@
     "service_worker": "background.js"
   },
   "host_permissions": [
-    "https://*.spotify.com/"
+    "https://accounts.spotify.com/*",
+    "https://api.spotify.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

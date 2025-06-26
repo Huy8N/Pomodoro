@@ -11,7 +11,7 @@ function SwitchPlaylist({ settings, onSettingChange }) {
       if (!accessToken) return;
       setIsLoading(true);
       const data = await spotifyAPICall("/me/playlists", "GET");
-       console.log("Data received from Spotify API:", data); 
+      console.log("Data received from Spotify API:", data);
       if (data && data.items) {
         setPlaylists(data.items);
       }

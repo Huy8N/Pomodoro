@@ -21,15 +21,15 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
     }
   };
 
-  // const handleToggle = (settingKey) => {
-  //   // Create the new, updated settings object
-  //   const newSettings = {
-  //     ...settings, // 1. Copy all current settings
-  //     [settingKey]: !settings[settingKey], // 2. Flip the value of the one that was clicked
-  //   };
-  //   // 3. Call the function from App.jsx to update the master state
-  //   onSettingChange(newSettings);
-  // };
+  const handleToggle = (settingKey) => {
+    // Create the new, updated settings object
+    const newSettings = {
+      ...settings, // 1. Copy all current settings
+      [settingKey]: !settings[settingKey], // 2. Flip the value of the one that was clicked
+    };
+    // 3. Call the function from App.jsx to update the master state
+    onSettingChange(newSettings);
+  };
 
   const ToggleSwitch = ({ isOn, onToggle, label }) => {
     return (
