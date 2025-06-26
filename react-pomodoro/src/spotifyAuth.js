@@ -33,10 +33,11 @@ export const login = () => {
 
     await chrome.storage.local.set({ spotify_code_verifier: codeVerifier });
 
+    const redirectUri = await chrome.identity.getRedirectURL();
     const params = {
       client_id: SPOTIFY_CLIENT_ID,
       response_type: "code",
-      redirect_uri: chrome.identity.getRedirectURL(),
+      redirect_uri: redirectUri,
       scope:
         "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private playlist-read-collaborative",
       code_challenge_method: "S256",
