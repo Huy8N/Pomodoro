@@ -1,4 +1,15 @@
 /* Your existing Pomodoro styles remain the same */
+html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+}
+body {
+    background: #2e2e2e; /* Match your app's dark background */
+}
+
 .pomodoro-container {
   width: 320px;
   height: 520px;
@@ -197,12 +208,12 @@
 
 .presets {
   display: flex;
-  gap: 15px;
+  gap: 20px;
   margin-top: 10px;
 }
 
 .presets button {
-  padding: 12px 20px;
+  padding: 10px 12px;
   border: none;
   border-radius: 25px;
   background: #4a4a4a;
@@ -323,8 +334,8 @@
 }
 
 .spotify-banner {
-  background: #2e2e2e;
-  border-radius: 12px;
+  background: #222121;
+  /* border-radius: 12px; */
   padding: 12px;
   padding-top: 36px; /* Add padding at the top for the close button */
   width: 100%;
@@ -649,8 +660,8 @@
   color: white;     /* Set icon color */
   padding: 5px;
   position: absolute;
-  top: 15px;
-  right: 20px;  
+  top: 25px;
+  right: 15px;  
 }
 
 .back-btn {

@@ -4,22 +4,26 @@
   "version": "1.0.0",
   "description": "A pomodoro timer with spotify intergration",
   "icons": {
-    "48": "./public/PomoSpot48.png",
-    "128": "./public/PomoSpot128.png"
+    "48": "PomoSpot48.png",
+    "128": "PomoSpot128.png"
   },
   "action": {
     "default_popup": "index.html"
   },
-  "permission": [
+  "permissions": [
     "storage",
     "alarms",
-    "notification",
+    "notifications",
     "identity"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "host_permission": [
+  "host_permissions": [
+    "https://accounts.spotify.com/*",
     "https://api.spotify.com/*"
-  ]
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
+  }
 }

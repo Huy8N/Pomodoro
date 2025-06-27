@@ -9,7 +9,7 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
   const {playSoundOnEnd, pauseMusicOnPause} = settings;
 
   //Hook for spotify auth
-  const { accessToken, error, isLoading, login, logout, spotifyAPICall } =
+  const { accessToken, error, isLoading, login, logout } =
     useSpotifyAuth();
 
   //Handling login and logout

@@ -18,3 +18,7 @@ export const CUSTOM_TIME_OPTIONS = [
 ];
 
 export const DEFAULT_TIMER_DURATION = 0.1 * 60;
+
+export const SPOTIFY_CLIENT_ID = "0655552f30f84e6395f29a0b8d1b529c"
+export const SPOTIFY_API_BASE_URL = "https://api.spotify.com/v1"
+export const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token" 
