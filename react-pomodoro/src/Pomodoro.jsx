@@ -25,7 +25,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     toggleTimer,
     resetTimer,
     setTimer,
-  } = usePomodoroTimer(DEFAULT_TIMER_DURATION);
+  } = usePomodoroTimer();
 
   const {
     currentTrack,

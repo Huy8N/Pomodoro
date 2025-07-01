@@ -1,54 +1,60 @@
-import { useState, useEffect, useRef } from "react";
+// huy8n/pomodoro/Pomodoro-feature-extension/react-pomodoro/src/usePomodoroTimer.jsx
+import { useState, useEffect, useCallback } from "react";
+import { DEFAULT_TIMER_DURATION } from "./constants";
 
-export const usePomodoroTimer = (initialDuration) => {
-  const [timeLeft, setTimeLeft] = useState(initialDuration);
+export const usePomodoroTimer = () => {
+  const [timeLeft, setTimeLeft] = useState(DEFAULT_TIMER_DURATION);
   const [isRunning, setIsRunning] = useState(false);
-  const [currentDuration, setCurrentDuration] = useState(initialDuration);
-  const intervalRef = useRef(null);
 
-  //Timer countdown logic
+  const updateLocalState = useCallback((state) => {
+      if (state) {
+        setTimeLeft(state.timeLeft);
+        setIsRunning(state.isRunning);
+      }
+  }, []);
+
+
   useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft(prev => prev - 1); 
-      }, 1000);
-    } else if (timeLeft === 0 && isRunning) {
-      setIsRunning(false);
-    }
-    return () => clearInterval(intervalRef.current);
-  }, [isRunning, timeLeft]);
+    // Immediately request state from the background script
+    chrome.runtime.sendMessage({ command: "getState" }, (response) => {
+        if (chrome.runtime.lastError) {
+            console.error(`Error getting state: ${chrome.runtime.lastError.message}`);
+        } else {
+            updateLocalState(response);
+        }
+    });
 
+    // Listen for broadcasts from the background script
+    const messageListener = (message) => {
+        if (message.command === 'updateState') {
+            updateLocalState(message.state);
+        }
+    };
+    chrome.runtime.onMessage.addListener(messageListener);
 
-  // Set timer to opposite of previous state pause => play, vice versa
+    // Cleanup listener on unmount
+    return () => {
+        chrome.runtime.onMessage.removeListener(messageListener);
+    };
+  }, [updateLocalState]);
+
   const toggleTimer = () => {
-    setIsRunning(prev => !prev);
-  }
+    chrome.runtime.sendMessage({ command: isRunning ? "pause" : "start" });
+  };
 
   const resetTimer = () => {
-    setIsRunning(false);
-    setTimeLeft(currentDuration);
-  }
+    chrome.runtime.sendMessage({ command: "reset" });
+  };
 
   const setTimer = (seconds) => {
-    setIsRunning(false);
-    setTimeLeft(seconds);
-    setCurrentDuration(seconds);
-  }
+    chrome.runtime.sendMessage({ command: "setDuration", duration: seconds });
+  };
 
   const formatTime = (seconds) => {
-    if (seconds >= 3600) {
-      const minutes = Math.floor((seconds % 3600) / 60);
-      const hours = Math.floor(seconds / 3600);
-      return `${hours.toString().padStart(2, "0")}:${minutes
-        .toString()
-        .padStart(2, "0")}`;
-    } else {
-      const minutes = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return `${minutes.toString().padStart(2, "0")}:${secs
-        .toString()
-        .padStart(2, "0")}`;
-    }
+    if (seconds === null || typeof seconds !== 'number') return "00:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
   return {
@@ -57,6 +63,6 @@ export const usePomodoroTimer = (initialDuration) => {
     formattedTime: formatTime(timeLeft),
     toggleTimer,
     resetTimer,
-    setTimer
+    setTimer,
   };
 };
