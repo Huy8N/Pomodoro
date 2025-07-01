@@ -7,7 +7,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
             type: "basic",
             iconUrl: "PomoSpot128.png",
             title: "Time's Up",
-            message: "Your timer is up. Time for a break!",
+            message: "Your timer is up!",
             priority: 2
         });
     };
