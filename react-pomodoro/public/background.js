@@ -4,7 +4,7 @@
 let timerState = {
     timeLeft: null,
     isRunning: false,
-    duration: 0.1 * 60, // Default 25 minutes
+    duration: 0.1 * 60, 
 };
 
 // Interval reference
