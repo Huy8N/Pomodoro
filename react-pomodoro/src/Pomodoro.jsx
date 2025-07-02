@@ -82,9 +82,9 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     if (timeLeft === 0 && !isRunning && !popupHasBeenShown) {
       setShowTimerUp(true);
       setPopupHasBeenShown(true);
-      if (playSoundOnEnd && audioRef.current) {
-        audioRef.current.play();
-      }
+      // if (playSoundOnEnd && audioRef.current) {
+      //   audioRef.current.play();
+      // }
       spotifyControls.playFromPlaylist(breakPlaylistId);
     }
   }, [timeLeft, playSoundOnEnd, isRunning, breakPlaylistId, spotifyControls, popupHasBeenShown]);
