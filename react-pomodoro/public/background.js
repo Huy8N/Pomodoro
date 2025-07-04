@@ -2,9 +2,9 @@
 chrome.runtime.onInstalled.addListener(() => {
   // Initialize state on installation
   chrome.storage.local.set({
-    timeLeft: 0.1 * 60, // Default: 15 minutes
+    timeLeft: 0.1 * 60, // 6 seconds for testing
     isRunning: false,
-    duration: 0.1 * 60,
+    duration: 0.1 * 60, // testing
   });
 });
 
