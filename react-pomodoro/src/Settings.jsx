@@ -1,11 +1,10 @@
-import { useEffect } from "react";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 import spotifyIcon from "./assets/spotifyIcon.png";
 import SwitchPlaylist from "./SwitchPlaylist";
 
 
 function Settings({ onSettingChange, onCloseSettings, settings }) {
-  // Hooks - using React state instead of localStorage for Claude environment
+  // Settings are managed in App.jsx and persisted using chrome.storage
   const {playSoundOnEnd, pauseMusicOnPause} = settings;
 
   //Hook for spotify auth

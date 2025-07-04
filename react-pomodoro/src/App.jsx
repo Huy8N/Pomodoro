@@ -1,31 +1,46 @@
 import Pomodoro from "./Pomodoro";
 import Settings from "./Settings";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
   const [currentView, setCurrentView] = useState("pomodoro");
-  const [settings, setSettings] = useState(() => {
-    const playSoundOnEnd = localStorage.getItem("playSoundOnEnd");
-    const pauseMusicOnPause = localStorage.getItem("pauseMusicOnPause");
-    const workPlaylistId = localStorage.getItem("workPlaylistId");
-    const breakPlaylistId = localStorage.getItem("breakPlaylistId");
-
-    return {
-      playSoundOnEnd: playSoundOnEnd ? JSON.parse(playSoundOnEnd) : false,
-      pauseMusicOnPause: pauseMusicOnPause
-        ? JSON.parse(pauseMusicOnPause)
-        : false,
-      workPlaylistId: workPlaylistId ? workPlaylistId : null,
-      breakPlaylistId: breakPlaylistId ? breakPlaylistId : null,
-    };
+  const [settings, setSettings] = useState({
+    playSoundOnEnd: false,
+    pauseMusicOnPause: false,
+    workPlaylistId: null,
+    breakPlaylistId: null,
   });
 
-  //When settings is changed
-  const handleSettingChange = useCallback((newSettings) => {
-    Object.keys(newSettings).forEach(key => {
-      localStorage.setItem(key, JSON.stringify(newSettings[key]));
-    });
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const result = await chrome.storage.local.get([
+          "playSoundOnEnd",
+          "pauseMusicOnPause",
+          "workPlaylistId",
+          "breakPlaylistId",
+        ]);
+        setSettings({
+          playSoundOnEnd: result.playSoundOnEnd ?? false,
+          pauseMusicOnPause: result.pauseMusicOnPause ?? false,
+          workPlaylistId: result.workPlaylistId ?? null,
+          breakPlaylistId: result.breakPlaylistId ?? null,
+        });
+      } catch (e) {
+        console.error("Failed to load settings:", e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  //When settings are changed, persist them to chrome.storage
+  const handleSettingChange = useCallback(async (newSettings) => {
+    try {
+      await chrome.storage.local.set(newSettings);
+    } catch (e) {
+      console.error("Failed to save settings:", e);
+    }
     setSettings(newSettings);
   }, []);
 
