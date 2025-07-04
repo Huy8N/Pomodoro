@@ -1,99 +1,96 @@
 // huy8n/pomodoro/Pomodoro-feature-extension/react-pomodoro/public/background.js
-
-// Timer state
-let timerState = {
-    timeLeft: null,
+chrome.runtime.onInstalled.addListener(() => {
+  // Initialize state on installation
+  chrome.storage.local.set({
+    timeLeft: 0.1 * 60, // 6 seconds for testing
     isRunning: false,
-    duration: 0.1 * 60, 
-};
+    duration: 0.1 * 60, // testing
+  });
+});
 
-// Interval reference
-let timerInterval = null;
-
-// Timer logic
-function startTimer() {
-    if (timerState.isRunning) return;
-
-    timerState.isRunning = true;
-    if (timerState.timeLeft === null || timerState.timeLeft <= 0) {
-        timerState.timeLeft = timerState.duration;
-    }
-
-    timerInterval = setInterval(() => {
-        timerState.timeLeft--;
+// Timer update loop
+setInterval(async () => {
+  const allState = await chrome.storage.local.get(null);
+  if (allState.isRunning) {
+    const alarm = await chrome.alarms.get("pomodoroTimer");
+    if (alarm) {
+      const newTimeLeft = Math.round((alarm.scheduledTime - Date.now()) / 1000);
+      if (newTimeLeft !== allState.timeLeft) {
+        chrome.storage.local.set({ timeLeft: newTimeLeft });
         broadcastState();
-
-        if (timerState.timeLeft <= 0) {
-            clearInterval(timerInterval);
-            timerState.isRunning = false;
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'PomoSpot128.png',
-                title: "Time's Up!",
-                message: "Your Pomodoro session has ended.",
-                priority: 2
-            });
-            // Wait for user action before resetting
-            broadcastState();
-        }
-    }, 1000);
-}
-
-function pauseTimer() {
-    timerState.isRunning = false;
-    clearInterval(timerInterval);
-    broadcastState();
-}
-
-function resetTimer() {
-    timerState.isRunning = false;
-    clearInterval(timerInterval);
-    timerState.timeLeft = timerState.duration;
-    broadcastState();
-}
-
-function setTimer(newDuration) {
-    timerState.duration = newDuration;
-    if (!timerState.isRunning) {
-        timerState.timeLeft = newDuration;
+      }
     }
-    broadcastState();
-}
+  }
+}, 1000);
 
-// Function to send the current state to the popup
-function broadcastState() {
-    chrome.runtime.sendMessage({ command: 'updateState', state: timerState }).catch(error => {
-        // This can happen if the popup is closed, which is expected.
-        if (error.message.includes("Could not establish connection")) {
-            // console.log("Popup is not open.");
-        } else {
-            console.error("Broadcast error:", error);
-        }
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name === "pomodoroTimer") {
+    await chrome.storage.local.set({ isRunning: false, timeLeft: 0 });
+    chrome.notifications.create({
+      type: 'basic',
+      iconUrl: 'PomoSpot128.png',
+      title: "Time's Up!",
+      message: "Your Pomodoro session has ended.",
+      priority: 2
     });
+    broadcastState();
+  }
+});
+
+async function startTimer() {
+  const allState = await chrome.storage.local.get(null);
+  if (allState.isRunning) return;
+
+  await chrome.storage.local.set({ isRunning: true });
+  const durationInMinutes = (allState.timeLeft || allState.duration) / 60;
+  chrome.alarms.create("pomodoroTimer", { delayInMinutes: durationInMinutes });
+  broadcastState();
 }
 
-// Message listener for commands from the popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    switch (request.command) {
-        case 'start':
-            startTimer();
-            break;
-        case 'pause':
-            pauseTimer();
-            break;
-        case 'reset':
-            resetTimer();
-            break;
-        case 'setDuration':
-            setTimer(request.duration);
-            break;
-        case 'getState':
-             if (timerState.timeLeft === null) {
-                timerState.timeLeft = timerState.duration;
-            }
-            sendResponse(timerState);
-            break;
+async function pauseTimer() {
+  await chrome.storage.local.set({ isRunning: false });
+  await chrome.alarms.clear("pomodoroTimer");
+  broadcastState();
+}
+
+async function resetTimer() {
+  const { duration } = await chrome.storage.local.get("duration");
+  await chrome.storage.local.set({ isRunning: false, timeLeft: duration });
+  await chrome.alarms.clear("pomodoroTimer");
+  broadcastState();
+}
+
+async function setTimer(newDuration) {
+  await chrome.storage.local.set({ duration: newDuration, timeLeft: newDuration });
+  broadcastState();
+}
+
+async function broadcastState() {
+  const allState = await chrome.storage.local.get(null);
+  chrome.runtime.sendMessage({ command: 'updateState', state: allState }).catch(error => {
+    if (error.message.includes("Could not establish connection")) {
+        // Expected if the popup is closed
+    } else {
+        console.error("Broadcast error:", error);
     }
-    // `return true` is essential for async `sendResponse`
-    return true;
+  });
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  const actions = {
+    start: startTimer,
+    pause: pauseTimer,
+    reset: resetTimer,
+    setDuration: () => setTimer(request.duration),
+    getState: async () => {
+      const state = await chrome.storage.local.get(null);
+      sendResponse(state);
+    }
+  };
+
+  if (actions[request.command]) {
+    actions[request.command]();
+  }
+  return true; // Keep message channel open for async response
 });

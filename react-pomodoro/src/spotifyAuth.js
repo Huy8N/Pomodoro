@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const SPOTIFY_CLIENT_ID = "0655552f30f84e6395f29a0b8d1b529c";
+const SPOTIFY_CLIENT_ID = "889db36d555d41f1bcc56f22d1e2210c";
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 
 //PKCE Flow helper function from spotify doc
