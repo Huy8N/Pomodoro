@@ -21,7 +21,8 @@
   },
   "host_permissions": [
      "https://accounts.spotify.com/authorize",
-    "https://accounts.spotify.com/api/token"
+    "https://accounts.spotify.com/api/token",
+    "https://api.spotify.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"
