@@ -85,7 +85,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
       // if (playSoundOnEnd && audioRef.current) {
       //   audioRef.current.play();
       // }
-      spotifyControls.playFromPlaylist(breakPlaylistId);
+      // spotifyControls.playFromPlaylist(breakPlaylistId);
     }
   }, [timeLeft, playSoundOnEnd, isRunning, breakPlaylistId, spotifyControls, popupHasBeenShown]);
 
