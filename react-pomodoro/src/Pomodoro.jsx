@@ -41,14 +41,14 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     );
   }, []);
 
-  useEffect(() => {
-    if (isRunning && !timerStarted.current) {
-      spotifyControls.playFromPlaylist(workPlaylistId);
-      timerStarted.current = true;
-    } else if (!isRunning) {
-      timerStarted.current = false;
-    }
-  }, [isRunning, workPlaylistId, spotifyControls]);
+  // useEffect(() => {
+  //   if (isRunning && !timerStarted.current) {
+  //     spotifyControls.playFromPlaylist(workPlaylistId);
+  //     timerStarted.current = true;
+  //   } else if (!isRunning) {
+  //     timerStarted.current = false;
+  //   }
+  // }, [isRunning, workPlaylistId, spotifyControls]);
 
   useEffect(() => {
     if (isRunning) {

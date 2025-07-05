@@ -36,13 +36,21 @@ async function startTimer() {
 
   // Switch to work playlist (if set)
   const { workPlaylistId } = await chrome.storage.local.get("workPlaylistId");
-  if (workPlaylistId) {
+  // if (workPlaylistId) {
+  //   await callSpotifyAPI("/me/player/shuffle?state=true");
+  //   await callSpotifyAPI("/me/player/play", "PUT", {
+  //     
+  //   });
+  // }
+
+  if (timeLeft < duration && wasPlayingBeforePause) {
+    await callSpotifyAPI("/me/player/play");
+  } else if (workPlaylistId) {
     await callSpotifyAPI("/me/player/shuffle?state=true");
     await callSpotifyAPI("/me/player/play", "PUT", {
       context_uri: `spotify:playlist:${workPlaylistId}`
-    });
+    })
   }
-
   broadcastState();
 }
 
