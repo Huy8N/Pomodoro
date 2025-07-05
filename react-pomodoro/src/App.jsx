@@ -1,32 +1,41 @@
 import Pomodoro from "./Pomodoro";
 import Settings from "./Settings";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect} from "react";
 import "./App.css";
 
 function App() {
   const [currentView, setCurrentView] = useState("pomodoro");
-  const [settings, setSettings] = useState(() => {
-    const playSoundOnEnd = localStorage.getItem("playSoundOnEnd");
-    const pauseMusicOnPause = localStorage.getItem("pauseMusicOnPause");
-    const workPlaylistId = localStorage.getItem("workPlaylistId");
-    const breakPlaylistId = localStorage.getItem("breakPlaylistId");
-
-    return {
-      playSoundOnEnd: playSoundOnEnd ? JSON.parse(playSoundOnEnd) : false,
-      pauseMusicOnPause: pauseMusicOnPause
-        ? JSON.parse(pauseMusicOnPause)
-        : false,
-      workPlaylistId: workPlaylistId ? workPlaylistId : null,
-      breakPlaylistId: breakPlaylistId ? breakPlaylistId : null,
-    };
+  const [settings, setSettings] = useState({
+    playSoundOnEnd: false,
+    pauseMusicOnPause: false,
+    workPlaylistId: null,
+    breakPlaylistId: null,
   });
+
+  useEffect(() => {
+    chrome.storage.local.get(
+      [
+        "playSoundOnEnd",
+        "pauseMusicOnPause",
+        "workPlaylistId",
+        "breakPlaylistId",
+      ],
+      (stored) => {
+        setSettings({
+          playSoundOnEnd: stored.playSoundOnEnd ?? false,
+          pauseMusicOnPause: stored.pauseMusicOnPause ?? false,
+          workPlaylistId: stored.workPlaylistId ?? null,
+          breakPlaylistId: stored.breakPlaylistId ?? null,
+        });
+      }
+    );
+  }, []);
 
   //When settings is changed
   const handleSettingChange = useCallback((newSettings) => {
-    Object.keys(newSettings).forEach(key => {
-      localStorage.setItem(key, JSON.stringify(newSettings[key]));
+    chrome.storage.local.set(newSettings, () => {
+      setSettings(newSettings);
     });
-    setSettings(newSettings);
   }, []);
 
   //switch to settings view
@@ -45,7 +54,7 @@ function App() {
         <Pomodoro settings={settings} onOpenSettings={openSettings} />
       ) : (
         <Settings
-        settings={settings}
+          settings={settings}
           onSettingChange={handleSettingChange}
           onCloseSettings={closeSettings}
         />
