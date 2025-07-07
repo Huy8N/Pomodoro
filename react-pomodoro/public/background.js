@@ -1,16 +1,18 @@
-// background.js
-// Always-loaded service worker for Pomodoro + Spotify
-
-// On install: set up a short test timer
+// Initial timer state
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
-    timeLeft: 0.1 * 60,    // 6 seconds for testing
-    duration: 0.1 * 60,
+    timeLeft: 0.2 * 60,    // 10 seconds for testing purposes
+    duration: 0.2 * 60,
     isRunning: false
   });
 });
 
-// === Spotify helper ===
+/**
+ * Helper function to make API calls to Spotify
+ * @param {string} endpoint - The Spotify API endpoint to call
+ * @param {string} method - HTTP method (default: "PUT")
+ * @param {object} body - Request body for POST/PUT requests
+ */
 async function callSpotifyAPI(endpoint, method = "PUT", body = null) {
   const { spotify_access_token: token } = await chrome.storage.local.get("spotify_access_token");
   if (!token) return;
@@ -23,6 +25,11 @@ async function callSpotifyAPI(endpoint, method = "PUT", body = null) {
 }
 
 // === Timer actions ===
+
+/**
+ * Starts the Pomodoro timer and begins playing work playlist
+ * Creates a Chrome alarm for the countdown and switches to work music
+ */
 async function startTimer() {
   const { isRunning } = await chrome.storage.local.get("isRunning");
   if (isRunning) return;
@@ -54,6 +61,10 @@ async function startTimer() {
   broadcastState();
 }
 
+/**
+ * Pauses the Pomodoro timer and optionally pauses music
+ * Captures the current playback state before pausing
+ */
 async function pauseTimer() {
   // capture whether playback was active
   const { spotify_access_token: token } = await chrome.storage.local.get("spotify_access_token");
@@ -78,6 +89,10 @@ async function pauseTimer() {
   broadcastState();
 }
 
+/**
+ * Resets the timer to its original duration and stops the countdown
+ * Clears any existing alarms and resets the timer state
+ */
 async function resetTimer() {
   const { duration } = await chrome.storage.local.get("duration");
   await chrome.storage.local.set({ isRunning: false, timeLeft: duration });
@@ -85,6 +100,10 @@ async function resetTimer() {
   broadcastState();
 }
 
+/**
+ * Sets a new timer duration and resets the current time left
+ * @param {number} newDuration - New duration in seconds
+ */
 async function setTimer(newDuration) {
   await chrome.storage.local.set({ duration: newDuration, timeLeft: newDuration });
   broadcastState();
@@ -131,7 +150,10 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   broadcastState();
 });
 
-// === Notify popup/UI of state changes ===
+/**
+ * Broadcasts the current timer state to all connected popup windows
+ * Sends a message with the complete state to update the UI
+ */
 async function broadcastState() {
   const state = await chrome.storage.local.get(null);
   chrome.runtime.sendMessage({ command: "updateState", state })
