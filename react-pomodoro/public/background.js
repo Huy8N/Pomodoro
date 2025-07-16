@@ -7,6 +7,8 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+let countdownIntervalId = null;
+
 /**
  * Helper function to make API calls to Spotify
  * @param {string} endpoint - The Spotify API endpoint to call
@@ -37,8 +39,18 @@ async function callSpotifyAPI(endpoint, method = "PUT", body = null) {
  */
 async function startTimer() {
   try {
-    const { isRunning, timeLeft, duration, workPlaylistId, wasPlayingBeforePause } = await chrome.storage.local.get([
-      "isRunning, timeLeft, duration", "workPlaylistId", "wasPlayingBeforePause"
+    const {
+      isRunning,
+      timeLeft,
+      duration,
+      workPlaylistId,
+      wasPlayingBeforePause,
+    } = await chrome.storage.local.get([
+      "isRunning",
+      "timeLeft",
+      "duration",
+      "workPlaylistId",
+      "wasPlayingBeforePause",
     ]); // check if timer is already running
     if (isRunning) return; // if so, do nothing
 
@@ -48,6 +60,10 @@ async function startTimer() {
       // create an alarm for the countdown
       delayInMinutes: (timeLeft || duration) / 60, // set the delay to the time left or duration
     });
+
+    if (!countdownIntervalId) {
+      countdownIntervalId = setInterval(updateCountdown, 1000);
+    }
 
     if (timeLeft < duration && wasPlayingBeforePause) {
       await callSpotifyAPI("/me/player/play");
@@ -63,15 +79,43 @@ async function startTimer() {
   }
 }
 
+async function updateCountdown() {
+  const { isRunning, timeLeft: prevLeft } = await chrome.storage.local.get([
+    "isRunning",
+    "timeLeft",
+  ]);
+  if (!isRunning) return; //If the timer is not running, do nothing
+
+  //get the alarm
+  const alarm = await chrome.alarms.get("pomodoroTimer");
+  if (!alarm) {
+    clearInterval(countdownIntervalId);
+    countdownIntervalId = null;
+    return;
+  }
+
+  const newLeft = Math.max(
+    0,
+    Math.round((alarm.scheduledTime - Date.now()) / 1000)
+  );
+
+  if (newLeft !== prevLeft) {
+    await chrome.storage.local.set({ timeLeft: newLeft });
+    broadcastState();
+  }
+}
+
 /**
  * Pauses the Pomodoro timer and optionally pauses music
  * Captures the current playback state before pausing
  */
 async function pauseTimer() {
   try {
-    const { spotify_access_token: token, pauseMusicOnPause } = await chrome.storage.local.get(
-      "spotify_access_token", "pauseMusicOnPuase"
-    );
+    const { spotify_access_token: token, pauseMusicOnPause } =
+      await chrome.storage.local.get([
+        "spotify_access_token",
+        "pauseMusicOnPause",
+      ]);
     if (token) {
       const res = await fetch("https://api.spotify.com/v1/me/player", {
         headers: { Authorization: `Bearer ${token}` },
@@ -95,13 +139,16 @@ async function pauseTimer() {
     if (pauseMusicOnPause) {
       await callSpotifyAPI("/me/player/pause");
     }
-
-    broadcastState();
   } catch (error) {
     console.error("Pause timer error:", error);
     // Still pause timer even if Spotify fails
     await chrome.storage.local.set({ isRunning: false });
     await chrome.alarms.clear("pomodoroTimer");
+  } finally {
+    if (countdownIntervalId) {
+      clearInterval(countdownIntervalId);
+      countdownIntervalId = null;
+    }
     broadcastState();
   }
 }
@@ -115,9 +162,14 @@ async function resetTimer() {
     const { duration } = await chrome.storage.local.get("duration");
     await chrome.storage.local.set({ isRunning: false, timeLeft: duration });
     await chrome.alarms.clear("pomodoroTimer");
-    broadcastState();
   } catch (error) {
     console.error("Reset timer error:", error);
+  } finally {
+    if (countdownIntervalId) {
+      clearInterval(countdownIntervalId);
+      countdownIntervalId = null;
+    }
+    broadcastState();
   }
 }
 
@@ -137,23 +189,23 @@ async function setTimer(newDuration) {
   }
 }
 
-// === Countdown updater (runs every second) ===
-setInterval(async () => {
-  const all = await chrome.storage.local.get(null);
-  if (!all.isRunning) return;
+// // === Countdown updater (runs every second) ===
+// setInterval(async () => {
+//   const all = await chrome.storage.local.get(null);
+//   if (!all.isRunning) return;
 
-  const alarm = await chrome.alarms.get("pomodoroTimer");
-  if (!alarm) return;
+//   const alarm = await chrome.alarms.get("pomodoroTimer");
+//   if (!alarm) return;
 
-  const newLeft = Math.max(
-    0,
-    Math.round((alarm.scheduledTime - Date.now()) / 1000)
-  );
-  if (newLeft !== all.timeLeft) {
-    await chrome.storage.local.set({ timeLeft: newLeft });
-    broadcastState();
-  }
-}, 1000);
+//   const newLeft = Math.max(
+//     0,
+//     Math.round((alarm.scheduledTime - Date.now()) / 1000)
+//   );
+//   if (newLeft !== all.timeLeft) {
+//     await chrome.storage.local.set({ timeLeft: newLeft });
+//     broadcastState();
+//   }
+// }, 1000);
 
 // === Alarm fired ===
 chrome.alarms.onAlarm.addListener(async (alarm) => {
