@@ -37,8 +37,8 @@ async function callSpotifyAPI(endpoint, method = "PUT", body = null) {
  */
 async function startTimer() {
   try {
-    const { isRunning, timeLeft, duration } = await chrome.storage.local.get([
-      "isRunning, timeLeft, duration",
+    const { isRunning, timeLeft, duration, workPlaylistId, wasPlayingBeforePause } = await chrome.storage.local.get([
+      "isRunning, timeLeft, duration", "workPlaylistId", "wasPlayingBeforePause"
     ]); // check if timer is already running
     if (isRunning) return; // if so, do nothing
 
@@ -48,12 +48,6 @@ async function startTimer() {
       // create an alarm for the countdown
       delayInMinutes: (timeLeft || duration) / 60, // set the delay to the time left or duration
     });
-    // Switch to work playlist (if set)
-    const { workPlaylistId } = await chrome.storage.local.get("workPlaylistId");
-
-    const { wasPlayingBeforePause } = await chrome.storage.local.get(
-      "wasPlayingBeforePause"
-    );
 
     if (timeLeft < duration && wasPlayingBeforePause) {
       await callSpotifyAPI("/me/player/play");
@@ -75,8 +69,8 @@ async function startTimer() {
  */
 async function pauseTimer() {
   try {
-    const { spotify_access_token: token } = await chrome.storage.local.get(
-      "spotify_access_token"
+    const { spotify_access_token: token, pauseMusicOnPause } = await chrome.storage.local.get(
+      "spotify_access_token", "pauseMusicOnPuase"
     );
     if (token) {
       const res = await fetch("https://api.spotify.com/v1/me/player", {
@@ -98,10 +92,6 @@ async function pauseTimer() {
     await chrome.storage.local.set({ isRunning: false });
     await chrome.alarms.clear("pomodoroTimer");
 
-    // optionally pause music
-    const { pauseMusicOnPause } = await chrome.storage.local.get(
-      "pauseMusicOnPause"
-    );
     if (pauseMusicOnPause) {
       await callSpotifyAPI("/me/player/pause");
     }
