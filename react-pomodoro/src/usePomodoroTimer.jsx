@@ -23,7 +23,7 @@ export const usePomodoroTimer = () => {
 
     // Listen for state broadcasts
     const messageListener = (message) => {
-      if (message.command === 'updateState') {
+      if (message.command === "updateState") {
         updateLocalState(message.state);
       }
     };
@@ -46,10 +46,16 @@ export const usePomodoroTimer = () => {
   };
 
   const formatTime = (seconds) => {
-    if (seconds === null || typeof seconds !== 'number') return "00:00"; // Handle null state
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    if (seconds === null || typeof seconds !== "number") return "00:00"; // Handle null state
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    const HH = String(hours).padStart(2, "0");
+    const MM = String(mins).padStart(2, "0");
+    const SS = String(secs).padStart(2, "0");
+
+    return hours > 0 ? `${HH}:${MM}` : `${MM}:${SS}`;
   };
 
   return {

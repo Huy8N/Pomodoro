@@ -36,22 +36,6 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     controls: spotifyControls,
   } = useSpotifyPlayback();
 
-  // const audioRef = useRef(null);
-  // useEffect(() => {
-  //   audioRef.current = new Audio(
-  //     "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-  //   );
-  // }, []);
-
-  // useEffect(() => {
-  //   if (isRunning && !timerStarted.current) {
-  //     spotifyControls.playFromPlaylist(workPlaylistId);
-  //     timerStarted.current = true;
-  //   } else if (!isRunning) {
-  //     timerStarted.current = false;
-  //   }
-  // }, [isRunning, workPlaylistId, spotifyControls]);
-
   useEffect(() => {
     if (isRunning) {
       setPopupHasBeenShown(false);
