@@ -37,15 +37,13 @@ async function callSpotifyAPI(endpoint, method = "PUT", body = null) {
  */
 async function startTimer() {
   try {
-    const { isRunning } = await chrome.storage.local.get("isRunning"); // check if timer is already running
+    const { isRunning, timeLeft, duration } = await chrome.storage.local.get([
+      "isRunning, timeLeft, duration",
+    ]); // check if timer is already running
     if (isRunning) return; // if so, do nothing
 
     // Mark running & schedule
     await chrome.storage.local.set({ isRunning: true }); // set running to true
-    const { timeLeft, duration } = await chrome.storage.local.get([
-      "timeLeft",
-      "duration",
-    ]); // get time left and duration
     chrome.alarms.create("pomodoroTimer", {
       // create an alarm for the countdown
       delayInMinutes: (timeLeft || duration) / 60, // set the delay to the time left or duration
