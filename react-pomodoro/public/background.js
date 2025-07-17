@@ -1,8 +1,8 @@
 // Initial timer state
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
-    timeLeft: 0.2 * 60, // 10 seconds for testing purposes
-    duration: 0.2 * 60,
+    timeLeft: 10 * 60, // 10 seconds for testing purposes
+    duration: 10 * 60,
     isRunning: false,
   });
 });
