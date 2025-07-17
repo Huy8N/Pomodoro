@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePomodoroTimer } from "./usePomodoroTimer";
 import { useSpotifyPlayback } from "./useSpotifyPlayback";
 import { PRESET_TIMES, DEFAULT_TIMER_DURATION } from "./constants";
@@ -6,6 +6,8 @@ import { SpotifyBanner } from "./SpotifyBanner";
 import { TimerControls } from "./TimerControls";
 import { TimerSelectionMenu } from "./TimeSelectionMenu";
 import { TimerUpPopup } from "./TimerUpPopup";
+import { useTimerEndPopup } from "./useTimerEndPopup";
+import { useAudioAlert } from "./useAudioAlert";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
   const { playSoundOnEnd = false, pauseMusicOnPause = false, workPlaylistId, breakPlaylistId} = settings;
@@ -33,22 +35,6 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     accessToken,
     controls: spotifyControls,
   } = useSpotifyPlayback();
-
-  const audioRef = useRef(null);
-  useEffect(() => {
-    audioRef.current = new Audio(
-      "https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
-    );
-  }, []);
-
-  // useEffect(() => {
-  //   if (isRunning && !timerStarted.current) {
-  //     spotifyControls.playFromPlaylist(workPlaylistId);
-  //     timerStarted.current = true;
-  //   } else if (!isRunning) {
-  //     timerStarted.current = false;
-  //   }
-  // }, [isRunning, workPlaylistId, spotifyControls]);
 
   useEffect(() => {
     if (isRunning) {
@@ -78,17 +64,21 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     spotifyControls,
   ]);
 
-  useEffect(() => {
-    if (timeLeft === 0 && !isRunning && !popupHasBeenShown) {
-      setShowTimerUp(true);
-      setPopupHasBeenShown(true);
-      // if (playSoundOnEnd && audioRef.current) {
-      //   audioRef.current.play();
-      // }
-      // spotifyControls.playFromPlaylist(breakPlaylistId);
-    }
-  }, [timeLeft, playSoundOnEnd, isRunning, breakPlaylistId, spotifyControls, popupHasBeenShown]);
+  const audioRef = useAudioAlert("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
+  const handleTimerEnd = useCallback(() => {
+    setShowTimerUp(true);
+    if (settings.playSoundOnEnd) {
+      audioRef.current.play();
+    }
+    spotifyControls.playFromPlaylist(settings.breakPlaylistId);
+  }, [settings.playSoundOnEnd, settings.breakPlaylistId, spotifyControls, audioRef]);
+
+  useTimerEndPopup({
+    timeLeft,
+    isRunning,
+    onShow: handleTimerEnd
+  });
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
     setActivePreset(index);
