@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePomodoroTimer } from "./usePomodoroTimer";
 import { useSpotifyPlayback } from "./useSpotifyPlayback";
 import { PRESET_TIMES, DEFAULT_TIMER_DURATION } from "./constants";
@@ -66,15 +66,19 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
 
   const audioRef = useAudioAlert("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
+  const handleTimerEnd = useCallback(() => {
+    setShowTimerUp(true);
+    if (settings.playSoundOnEnd) {
+      audioRef.current.play();
+    }
+    spotifyControls.playFromPlaylist(settings.breakPlaylistId);
+  }, [settings.playSoundOnEnd, settings.breakPlaylistId, spotifyControls, audioRef]);
+
   useTimerEndPopup({
     timeLeft,
     isRunning,
-    onShow: () => {
-      setShowTimerUp(true);
-      if (playSoundOnEnd) audioRef.current.play();
-      spotifyControls.playFromPlaylist(breakPlaylistId);
-    }
-  })
+    onShow: handleTimerEnd
+  });
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
     setActivePreset(index);

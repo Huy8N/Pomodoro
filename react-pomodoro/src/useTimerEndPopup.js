@@ -1,7 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export function useTimerEndPopup({ timeLeft, isRunning, onShow }) {
+    const hasShownRef = useRef(false);
+
   useEffect(() => {
-    if (timeLeft === 0 && !isRunning) onShow();
+    if (isRunning) {
+        hasShownRef.current = false;
+        return;
+    }
+
+    if (timeLeft === 0 && !hasShownRef.current) {
+    onShow();
+    hasShownRef.current = true;
+    }
   }, [timeLeft, isRunning, onShow]);
 }
