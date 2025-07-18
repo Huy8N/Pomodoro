@@ -189,24 +189,6 @@ async function setTimer(newDuration) {
   }
 }
 
-// // === Countdown updater (runs every second) ===
-// setInterval(async () => {
-//   const all = await chrome.storage.local.get(null);
-//   if (!all.isRunning) return;
-
-//   const alarm = await chrome.alarms.get("pomodoroTimer");
-//   if (!alarm) return;
-
-//   const newLeft = Math.max(
-//     0,
-//     Math.round((alarm.scheduledTime - Date.now()) / 1000)
-//   );
-//   if (newLeft !== all.timeLeft) {
-//     await chrome.storage.local.set({ timeLeft: newLeft });
-//     broadcastState();
-//   }
-// }, 1000);
-
 // === Alarm fired ===
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== "pomodoroTimer") return;
