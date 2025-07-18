@@ -96,7 +96,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     <>
     <div className="app-container">
       <div className="pomodoro-container">
-        <h1>Pomodoro+</h1>
+        <h1>PomoSpot</h1>
         <button className="settings-btn" onClick={onOpenSettings}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
