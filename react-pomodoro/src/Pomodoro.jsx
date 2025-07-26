@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { usePomodoroTimer } from "./usePomodoroTimer";
 import { useSpotifyPlayback } from "./useSpotifyPlayback";
-import { PRESET_TIMES, DEFAULT_TIMER_DURATION } from "./constants";
+import { PRESET_TIMES} from "./constants";
 import { SpotifyBanner } from "./SpotifyBanner";
 import { TimerControls } from "./TimerControls";
 import { TimerSelectionMenu } from "./TimeSelectionMenu";
