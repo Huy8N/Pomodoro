@@ -82,11 +82,13 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     isRunning,
     onShow: handleTimerEnd
   });
+
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
     setActivePreset(index);
   };
 
+  // close times up banner and reset audio
   const handleClosePopup = () => {
     setShowTimerUp(false);
     if (audioRef.current) {
