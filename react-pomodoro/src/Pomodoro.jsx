@@ -10,14 +10,12 @@ import { useTimerEndPopup } from "./useTimerEndPopup";
 import { useAudioAlert } from "./useAudioAlert";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
-  const { playSoundOnEnd = false, pauseMusicOnPause = false, workPlaylistId, breakPlaylistId} = settings;
 
   const [activePreset, setActivePreset] = useState(1);
   const [showTimeMenu, setShowTimeMenu] = useState(false);
+  const {pauseMusicOnPause = false} = settings;
   const [showTimerUp, setShowTimerUp] = useState(false);
   const [wasPlayingBeforePause, setWasPlayingBeforePause] = useState(false);
-
-  const timerStarted = useRef(false);
   const [popupHasBeenShown, setPopupHasBeenShown] = useState(false);
 
   const {
@@ -36,15 +34,18 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     controls: spotifyControls,
   } = useSpotifyPlayback();
 
+  //Set whether or not the timer's up popup is shown
   useEffect(() => {
     if (isRunning) {
       setPopupHasBeenShown(false);
     }
   }, [isRunning]);
 
+  
   useEffect(() => {
     if (!pauseMusicOnPause || !accessToken) return;
 
+    //if clock is running, continue music
     if (isRunning) {
       if (wasPlayingBeforePause) {
         spotifyControls.resumeMusic();
@@ -64,8 +65,10 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     spotifyControls,
   ]);
 
+  //audio to play upon timer expiration
   const audioRef = useAudioAlert("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
+  // Show timer is up banner, play audio, start break playlist function
   const handleTimerEnd = useCallback(() => {
     setShowTimerUp(true);
     if (settings.playSoundOnEnd) {
