@@ -2,6 +2,7 @@ import axios from "axios";
 
 const SPOTIFY_CLIENT_ID = "889db36d555d41f1bcc56f22d1e2210c";
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
+const AUTH_ENDPOINT = "https://accounts.spotify.com/authorize/"
 
 //PKCE Flow helper function from spotify doc
 //Generate a key
@@ -35,7 +36,7 @@ export const login = () =>
 
       // 2) Get a **stable** redirect and PERSIST it
       //    The optional path ("spotify_cb") makes the value explicit/consistent.
-      const redirectUri = chrome.identity.getRedirectURL("spotify_cb");
+      const redirectUri = chrome.identity.getRedirectURL();
       await chrome.storage.local.set({
         spotify_code_verifier: codeVerifier,
         spotify_redirect_uri: redirectUri,
@@ -50,10 +51,12 @@ export const login = () =>
           "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private playlist-read-collaborative",
         code_challenge_method: "S256",
         code_challenge: codeChallenge,
-        state: generateRandomString(16), // optional but recommended
       });
 
-      const authUrl = `${AUTH_ENDPOINT}?${params.toString()}`;
+      const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams(
+      params
+    ).toString()}`;
+
 
       // 4) Launch OAuth
       const finalUrl = await chrome.identity.launchWebAuthFlow({
