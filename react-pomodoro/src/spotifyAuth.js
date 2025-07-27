@@ -79,45 +79,59 @@ export const login = () =>
 
 const exchangeCodeForToken = async (code) => {
   try {
-    const { spotify_code_verifier } = await chrome.storage.local.get(
-      "spotify_code_verifier"
-    );
+    const { spotify_code_verifier, spotify_redirect_uri } =
+      await chrome.storage.local.get(["spotify_code_verifier", "spotify_redirect_uri"]);
+
     if (!spotify_code_verifier) {
       throw new Error("Unable to find code verifier");
     }
+    if (!spotify_redirect_uri) {
+      throw new Error("Unable to find redirect URI used during authorization");
+    }
+
     const payload = {
       client_id: SPOTIFY_CLIENT_ID,
       grant_type: "authorization_code",
       code,
-      redirect_uri: chrome.identity.getRedirectURL(),
+      redirect_uri: spotify_redirect_uri, // <-- reuse EXACT value
       code_verifier: spotify_code_verifier,
     };
 
-    const reponse = await axios.post(
+    console.debug("Exchanging code with redirect_uri:", spotify_redirect_uri);
+
+    const response = await axios.post(
       TOKEN_ENDPOINT,
       new URLSearchParams(payload).toString(),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
 
-    const { access_token, refresh_token } = reponse.data;
+    const { access_token, refresh_token, expires_in, token_type } = response.data;
     if (!access_token) {
-      throw new Error("No access token found");
+      throw new Error("No access token found in token response");
     }
+
+    // If Spotify doesn't send a new refresh_token, keep the old one if present
+    const existing = await chrome.storage.local.get("spotify_refresh_token");
 
     await chrome.storage.local.set({
       spotify_access_token: access_token,
-      spotify_refresh_token: refresh_token,
+      spotify_refresh_token: refresh_token || existing.spotify_refresh_token || null,
+      spotify_token_type: token_type || "Bearer",
+      spotify_expires_in: typeof expires_in === "number" ? expires_in : null,
+      spotify_token_created_at: Date.now(),
     });
-    await chrome.storage.local.remove("spotify_code_verifier");
 
-    return { access_token, refresh_token };
+    // Clean up one-time values
+    await chrome.storage.local.remove(["spotify_code_verifier", "spotify_redirect_uri"]);
+
+    return { access_token, refresh_token: refresh_token || existing.spotify_refresh_token || null };
   } catch (error) {
     console.error(
       "Token exchange failed",
       error?.response?.status,
-      error?.response?.data
+      error?.response?.data || error?.message
     );
-    reject(error);
+    throw error; // <-- not reject()
   }
 };
 
