@@ -25,89 +25,100 @@ const base64encode = (input) => {
     .replace(/\//g, "_");
 };
 
-export const login = () => {
-  return new Promise(async (resolve, reject) => {
-    const codeVerifier = generateRandomString(64);
-    const hashed = await sha256(codeVerifier);
-    const codeChallenge = base64encode(hashed);
+export const login = () =>
+  new Promise(async (resolve, reject) => {
+    try {
+      // 1) PKCE bits
+      const codeVerifier = generateRandomString(64);
+      const hashed = await sha256(codeVerifier);
+      const codeChallenge = base64encode(hashed);
 
-    await chrome.storage.local.set({ spotify_code_verifier: codeVerifier });
+      // 2) Get a **stable** redirect and PERSIST it
+      //    The optional path ("spotify_cb") makes the value explicit/consistent.
+      const redirectUri = chrome.identity.getRedirectURL("spotify_cb");
+      await chrome.storage.local.set({
+        spotify_code_verifier: codeVerifier,
+        spotify_redirect_uri: redirectUri,
+      });
 
-    const redirectUri = await chrome.identity.getRedirectURL();
-    const params = {
-      client_id: SPOTIFY_CLIENT_ID,
-      response_type: "code",
-      redirect_uri: redirectUri,
-      scope:
-        "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private playlist-read-collaborative",
-      code_challenge_method: "S256",
-      code_challenge: codeChallenge,
-    };
+      // 3) Build authorize URL with the SAME redirectUri
+      const params = new URLSearchParams({
+        client_id: SPOTIFY_CLIENT_ID,
+        response_type: "code",
+        redirect_uri: redirectUri,
+        scope:
+          "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private playlist-read-collaborative",
+        code_challenge_method: "S256",
+        code_challenge: codeChallenge,
+        state: generateRandomString(16), // optional but recommended
+      });
 
-    const authURL = `https://accounts.spotify.com/authorize?${new URLSearchParams(
-      params
-    ).toString()}`;
+      const authUrl = `${AUTH_ENDPOINT}?${params.toString()}`;
 
-    chrome.identity.launchWebAuthFlow(
-      {
-        url: authURL,
+      // 4) Launch OAuth
+      const finalUrl = await chrome.identity.launchWebAuthFlow({
+        url: authUrl,
         interactive: true,
-      },
-      async (reponseUrl) => {
-        if (chrome.runtime.lastError || !reponseUrl) {
-          return reject(new Error("Login window was closed"));
-        }
+      });
 
-        const url = new URL(reponseUrl);
-        const code = url.searchParams.get("code");
+      // 5) Handle callback
+      const cb = new URL(finalUrl);
+      const err = cb.searchParams.get("error");
+      if (err) throw new Error(`Spotify auth error: ${err}`);
 
-        if (!code) {
-          return reject(new Error("Authorization failed"));
-        }
-        try {
-          const token = await exchangeCodeForToken(code);
-          resolve(token);
-        } catch (error) {
-          reject(error);
-        }
-      }
-    );
+      const code = cb.searchParams.get("code");
+      if (!code) throw new Error("No code returned from Spotify");
+
+      // 6) Exchange code (this will read spotify_redirect_uri from storage)
+      const tokens = await exchangeCodeForToken(code);
+      resolve(tokens);
+    } catch (e) {
+      reject(e);
+    }
   });
-};
 
 const exchangeCodeForToken = async (code) => {
-  const { spotify_code_verifier } = await chrome.storage.local.get(
-    "spotify_code_verifier"
-  );
-  if (!spotify_code_verifier) {
-    throw new Error("Unable to find code verifier");
+  try {
+    const { spotify_code_verifier } = await chrome.storage.local.get(
+      "spotify_code_verifier"
+    );
+    if (!spotify_code_verifier) {
+      throw new Error("Unable to find code verifier");
+    }
+    const payload = {
+      client_id: SPOTIFY_CLIENT_ID,
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: chrome.identity.getRedirectURL(),
+      code_verifier: spotify_code_verifier,
+    };
+
+    const reponse = await axios.post(
+      TOKEN_ENDPOINT,
+      new URLSearchParams(payload).toString(),
+      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+    );
+
+    const { access_token, refresh_token } = reponse.data;
+    if (!access_token) {
+      throw new Error("No access token found");
+    }
+
+    await chrome.storage.local.set({
+      spotify_access_token: access_token,
+      spotify_refresh_token: refresh_token,
+    });
+    await chrome.storage.local.remove("spotify_code_verifier");
+
+    return { access_token, refresh_token };
+  } catch (error) {
+    console.error(
+      "Token exchange failed",
+      error?.response?.status,
+      error?.response?.data
+    );
+    reject(error);
   }
-  const payload = {
-    client_id: SPOTIFY_CLIENT_ID,
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: chrome.identity.getRedirectURL(),
-    code_verifier: spotify_code_verifier,
-  };
-
-  const reponse = await axios.post(
-    TOKEN_ENDPOINT,
-    new URLSearchParams(payload).toString(),
-    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-  );
-
-  const { access_token, refresh_token } = reponse.data;
-  if (!access_token) {
-    throw new Error("No access token found");
-  }
-
-  await chrome.storage.local.set({
-    spotify_access_token: access_token,
-    spotify_refresh_token: refresh_token,
-  });
-  await chrome.storage.local.remove("spotify_code_verifier");
-
-  return { access_token, refresh_token };
 };
 
 export const logout = async () => {
