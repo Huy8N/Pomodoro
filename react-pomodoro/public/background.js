@@ -1,4 +1,5 @@
 importScripts('vendor/axios.min.js');
+console.debug("[SW] loaded — axios is", typeof axios);
 
 const SPOTIFY_CLIENT_ID = "889db36d555d41f1bcc56f22d1e2210c";
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
@@ -26,61 +27,55 @@ const base64encode = (input) => {
     .replace(/\//g, "_");
 };
 
-export const login = () =>
-  new Promise(async (resolve, reject) => {
+function login() {
+  console.debug("[SW] login() called");
+  return new Promise(async (resolve, reject) => {
     try {
-      // 1) PKCE bits
+      console.debug("[SW] 1) PKCE start");
       const codeVerifier = generateRandomString(64);
       const hashed = await sha256(codeVerifier);
       const codeChallenge = base64encode(hashed);
 
-      // 2) Get a **stable** redirect and PERSIST it
-      //    The optional path ("spotify_cb") makes the value explicit/consistent.
       const redirectUri = chrome.identity.getRedirectURL();
+      console.debug("[SW] saving verifier & redirectUri:", codeVerifier, redirectUri);
       await chrome.storage.local.set({
         spotify_code_verifier: codeVerifier,
         spotify_redirect_uri: redirectUri,
       });
 
-      // 3) Build authorize URL with the SAME redirectUri
-      const params = new URLSearchParams({
-        client_id: SPOTIFY_CLIENT_ID,
-        response_type: "code",
-        redirect_uri: redirectUri,
-        scope:
-          "streaming user-modify-playback-state user-read-currently-playing user-read-playback-state user-read-private playlist-read-private playlist-read-collaborative",
-        code_challenge_method: "S256",
-        code_challenge: codeChallenge,
-      });
+      const params = new URLSearchParams({ /* … */ });
+      const authUrl = `${AUTH_ENDPOINT}?${params.toString()}`;
+      console.debug("[SW] opening authUrl:", authUrl);
 
-      const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams(
-      params
-    ).toString()}`;
-
-
-      // 4) Launch OAuth
       const finalUrl = await chrome.identity.launchWebAuthFlow({
         url: authUrl,
         interactive: true,
       });
+      console.debug("[SW] got finalUrl:", finalUrl);
 
-      // 5) Handle callback
       const cb = new URL(finalUrl);
       const err = cb.searchParams.get("error");
+      console.debug("[SW] callback params:", Array.from(cb.searchParams.entries()));
       if (err) throw new Error(`Spotify auth error: ${err}`);
 
       const code = cb.searchParams.get("code");
+      console.debug("[SW] authorization code:", code);
       if (!code) throw new Error("No code returned from Spotify");
 
-      // 6) Exchange code (this will read spotify_redirect_uri from storage)
+      console.debug("[SW] exchanging code…");
       const tokens = await exchangeCodeForToken(code);
+      console.debug("[SW] tokens:", tokens);
       resolve(tokens);
     } catch (e) {
+      console.error("[SW] login() error:", e);
       reject(e);
     }
   });
+}
+
 
 const exchangeCodeForToken = async (code) => {
+   console.debug("[SW] exchangeCodeForToken() code:", code);
   try {
     const { spotify_code_verifier, spotify_redirect_uri } =
       await chrome.storage.local.get(["spotify_code_verifier", "spotify_redirect_uri"]);
@@ -100,6 +95,8 @@ const exchangeCodeForToken = async (code) => {
       code_verifier: spotify_code_verifier,
     };
 
+    console.debug("[SW] payload:", payload);
+
     console.debug("Exchanging code with redirect_uri:", spotify_redirect_uri);
 
     const response = await axios.post(
@@ -107,6 +104,8 @@ const exchangeCodeForToken = async (code) => {
       new URLSearchParams(payload).toString(),
       { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
     );
+
+     console.debug("[SW] token response data:", response.data);
 
     const { access_token, refresh_token, expires_in, token_type } = response.data;
     if (!access_token) {
@@ -138,7 +137,7 @@ const exchangeCodeForToken = async (code) => {
   }
 };
 
-export const logout = async () => {
+function logout() {
   chrome.storage.local.remove([
     "spotify_access_token",
     "spotify_refresh_token",
@@ -405,3 +404,21 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
   return true; // keeps sendResponse valid for async
 });
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg?.type === "SPOTIFY_LOGIN") {
+    login()
+      .then(tokens => sendResponse({ ok: true, tokens }))
+      .catch(error => {
+        console.error("Spotify login failed in SW:", error);
+        sendResponse({ ok: false, error: error.message || error });
+      });
+    return true; // keep channel open for async
+  }
+
+  if (msg?.type === "SPOTIFY_LOGOUT") {
+    logout();
+    sendResponse({ ok: true });
+  }
+});
+
