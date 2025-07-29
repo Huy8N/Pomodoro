@@ -63,8 +63,8 @@ export const useSpotifyPlayback = () => {
     return () => clearInterval(playbackIntervalRef.current);
   }, [accessToken, getCurrentPlayback]);
 
-  const sendMessageWithCallback = (command) => {
-    chrome.runtime.sendMessage({ command }, () => {
+  const sendMessageWithCallback = (command, payload = {}) => {
+    chrome.runtime.sendMessage({ command, ...payload }, () => {
       setTimeout(getCurrentPlayback, 500);
     });
   };
@@ -77,6 +77,20 @@ export const useSpotifyPlayback = () => {
     sendMessageWithCallback(isSpotifyPlaying ? "pauseSpotify" : "playSpotify");
   };
 
+
+  const pauseMusic = async () => {
+    if (!token) return;
+    sendMessageWithCallback("pauseSpotify");
+  }
+
+  const resumeMusic = async () => {
+    if (!token) {
+      login();
+      return;
+    }
+    sendMessageWithCallback("playSpotify");
+  }
+
   const nextTrack = async () => {
     if (!accessToken) return;
     sendMessageWithCallback("nextTrack");
@@ -87,6 +101,10 @@ export const useSpotifyPlayback = () => {
     sendMessageWithCallback("previousTrack");
   };
 
+  const playFromPlaylist = async (playlistId) => {
+    sendMessageWithCallback("playFromPlaylist", {playlistId});
+    console.log("⏯️ playFromPlaylist called with", playlistId);
+  }
   return {
     currentTrack,
     isSpotifyPlaying,
@@ -95,6 +113,9 @@ export const useSpotifyPlayback = () => {
       togglePlayPause,
       nextTrack,
       previousTrack,
+      pauseMusic,
+      playFromPlaylist,
+      resumeMusic
     },
   };
 };

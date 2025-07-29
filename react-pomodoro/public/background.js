@@ -59,23 +59,33 @@ async function callSpotifyAPI(endpoint, method = "GET", body = null) {
       body: body ? JSON.stringify(body) : null,
     });
 
+    // ─── 1. Auto-refresh an expired token ──────────────────────────────
     if (response.status === 401) {
-      // Token expired, try to refresh
-      console.log("Spotify token expired. Refreshing...");
+      console.log("Spotify token expired. Refreshing…");
       await refreshToken();
-      // Retry the call once after refreshing
-      return callSpotifyAPI(endpoint, method, body);
+      return callSpotifyAPI(endpoint, method, body); // retry once
     }
 
+    // ─── 2. Bubble up true HTTP errors (4xx/5xx) ───────────────────────
     if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Spotify API Error: ${response.status} - ${errorData}`);
+      const errorText = await response.text(); // may itself be empty
+      throw new Error(`Spotify API Error ${response.status}: ${errorText}`);
     }
 
-    return response.status === 204 ? null : await response.json();
-  } catch (error) {
-    console.error("Spotify API call failed:", error);
-    throw error;
+    // ─── 3. Short-circuit “no content” replies ─────────────────────────
+    if (response.status === 202 || response.status === 204) return null;
+
+    // ─── 4. Only parse JSON when there really *is* JSON ────────────────
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.startsWith("application/json")) {
+      // some 200s send an empty body with a text/plain header
+      return null;
+    }
+
+    return await response.json();
+  } catch (err) {
+    console.error("Spotify API call failed:", err);
+    throw err; // let callers decide what to do
   }
 }
 
@@ -206,7 +216,7 @@ async function startTimer() {
   if (!countdownIntervalId) {
     countdownIntervalId = setInterval(updateCountdown, 1000);
   }
-  await callSpotifyAPI("/me/player/play");
+  await callSpotifyAPI("/me/player/play", "PUT");
   broadcastState();
 }
 
@@ -218,7 +228,6 @@ async function pauseTimer() {
     clearInterval(countdownIntervalId);
     countdownIntervalId = null;
   }
-  await callSpotifyAPI("/me/player/pause");
   broadcastState();
 }
 
@@ -268,7 +277,7 @@ async function updateCountdown() {
 // --- Event Listeners ---
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
-    timeLeft: 30, // 25 minutes
+    timeLeft: 5, // 25 minutes
     duration: 1500,
     isRunning: false,
   });
@@ -277,8 +286,17 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.alarms.onAlarm.addListener(async (alarm) => {
   if (alarm.name !== "pomodoroTimer") return;
 
-  const { duration } = await chrome.storage.local.get("duration");
+  const { duration, breakPlaylistId } = await chrome.storage.local.get([
+    "duration",
+    "breakPlaylistId"
+  ]);
   await chrome.storage.local.set({ isRunning: false, timeLeft: duration });
+
+  if (breakPlaylistId) {
+    await callSpotifyAPI("/me/player/play", "PUT", {
+      context_uri: `spotify:playlist:${breakPlaylistId}`,
+    });
+  }
 
   chrome.notifications.create({
     type: "basic",
@@ -288,6 +306,12 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
     priority: 2,
   });
   broadcastState();
+  
+  chrome.action.openPopup().catch(() => {
+    // nothing to do here
+  });
+
+
 });
 
 // MERGED MESSAGE LISTENER
@@ -356,8 +380,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             sendResponse(response);
           } else {
             console.log("Unable to fetch playlists");
-            sendResponse({status: "unable to fetch playlist"});
+            sendResponse({ status: "unable to fetch playlist" });
           }
+          break;
+        case "playFromPlaylist":
+          console.log(
+            "▶️ background received playFromPlaylist for",
+            request.playlistId
+          );
+          await callSpotifyAPI("/me/player/play", "PUT", {
+            context_uri: `spotify:playlist:${request.playlistId}`,
+          });
+          sendResponse({ status: "ok" });
           break;
         default:
           console.warn("Unknown command:", request.command);
