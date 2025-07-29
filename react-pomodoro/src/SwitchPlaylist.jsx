@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 
 const SwitchPlaylist = () => {
@@ -53,13 +53,13 @@ const SwitchPlaylist = () => {
     <div className="playlist-container">
       <h3>Select Playlists</h3>
       <div className="playlist-selector">
-        <label htmlFor="work-playlist">Work Playlist:</label>
+        <label htmlFor="work-playlist">Work Playlist</label>
         <select
           id="work-playlist"
           value={selectedWorkPlaylist}
           onChange={handleWorkPlaylistChange}
         >
-          <option value="">--Select a playlist--</option>
+          <option value="">Select a playlist</option>
           {playlists.map((playlist) => (
             <option key={playlist.id} value={playlist.id}>
               {playlist.name}
@@ -68,13 +68,13 @@ const SwitchPlaylist = () => {
         </select>
       </div>
       <div className="playlist-selector">
-        <label htmlFor="break-playlist">Break Playlist:</label>
+        <label htmlFor="break-playlist">Break Playlist</label>
         <select
           id="break-playlist"
           value={selectedBreakPlaylist}
           onChange={handleBreakPlaylistChange}
         >
-          <option value="">--Select a playlist--</option>
+          <option value="">Select a playlist</option>
           {playlists.map((playlist) => (
             <option key={playlist.id} value={playlist.id}>
               {playlist.name}
