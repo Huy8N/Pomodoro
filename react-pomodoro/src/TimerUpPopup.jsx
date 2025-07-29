@@ -1,5 +1,3 @@
-import React from "react";
-
 export function TimerUpPopup({ onClose }) {
   return (
     <div className="timer-up-overlay" onClick={onClose}>
