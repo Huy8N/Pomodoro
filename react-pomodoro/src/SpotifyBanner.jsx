@@ -1,4 +1,3 @@
-import React from "react";
 import spotifyIcon from "./assets/spotifyIcon.png";
 
 const PreviousIcon = () => (
