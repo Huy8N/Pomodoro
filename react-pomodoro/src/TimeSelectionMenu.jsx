@@ -1,4 +1,3 @@
-import React from "react";
 import { CUSTOM_TIME_OPTIONS } from "./constants";
 
 export function TimerSelectionMenu({ onSelect, onClose }) {
@@ -6,7 +5,7 @@ export function TimerSelectionMenu({ onSelect, onClose }) {
     onSelect(seconds);
     onClose();
   };
-
+  
   return (
     <div className="time-menu-overlay" onClick={onClose}>
       <div className="time-menu" onClick={(e) => e.stopPropagation()}>
