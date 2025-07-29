@@ -268,7 +268,7 @@ async function updateCountdown() {
 // --- Event Listeners ---
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
-    timeLeft: 1500, // 25 minutes
+    timeLeft: 30, // 25 minutes
     duration: 1500,
     isRunning: false,
   });
@@ -352,6 +352,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           break;
         case "getPlaylists":
           response = await callSpotifyAPI("/me/playlists");
+          if (response && response.items) {
+            sendResponse(response);
+          } else {
+            console.log("Unable to fetch playlists");
+            sendResponse({status: "unable to fetch playlist"});
+          }
           break;
         default:
           console.warn("Unknown command:", request.command);
