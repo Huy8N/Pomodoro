@@ -51,7 +51,6 @@ const SwitchPlaylist = () => {
 
   return (
     <div className="playlist-container">
-      <h3>Select Playlists</h3>
       <div className="playlist-selector">
         <label htmlFor="work-playlist">Work Playlist</label>
         <select
