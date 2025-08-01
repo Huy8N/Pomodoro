@@ -95,14 +95,6 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
         <div className="timer-settings">
           <div className="setting-item">
             <ToggleSwitch
-              isOn={playSoundOnEnd}
-              onToggle={() => handleToggle('playSoundOnEnd')}
-              label="Play sound when timer ends"
-            />
-          </div>
-
-          <div className="setting-item">
-            <ToggleSwitch
               isOn={pauseMusicOnPause}
               onToggle={() => handleToggle('pauseMusicOnPause')}
               label="Pause music on timer pause"
