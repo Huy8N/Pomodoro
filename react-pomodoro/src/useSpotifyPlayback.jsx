@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import defaultAlbumCover from "./assets/defaultAlbumCover.png";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 
@@ -19,86 +19,72 @@ const NO_TRACK_PLAYING = {
 };
 
 export const useSpotifyPlayback = () => {
-  const { accessToken, login, spotifyAPICall } = useSpotifyAuth();
+  const { accessToken, login } = useSpotifyAuth();
   const [currentTrack, setCurrentTrack] = useState(NO_TRACK_PLAYING);
   const [isSpotifyPlaying, setIsSpotifyPlaying] = useState(false);
   const playbackIntervalRef = useRef(null);
 
-  const getCurrentPlayback = async () => {
+  const getCurrentPlayback = useCallback(() => {
     if (!accessToken) return;
-    try {
-      const data = await spotifyAPICall("/me/player/currently-playing");
+    chrome.runtime.sendMessage({ command: "getCurrentPlayback" }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error getting current playback:", chrome.runtime.lastError.message);
+        setCurrentTrack(NO_TRACK_PLAYING);
+        setIsSpotifyPlaying(false);
+        return;
+      }
 
-      if (data && data.item) {
+      if (response && response.item) {
         setCurrentTrack({
-          name: data.item.name,
-          artist: data.item.artists.map((artist) => artist.name).join(", "),
-          duration: formatSpotifyTime(data.item.duration_ms),
-          currentTime: formatSpotifyTime(data.progress_ms),
+          name: response.item.name,
+          artist: response.item.artists.map((artist) => artist.name).join(", "),
+          duration: formatSpotifyTime(response.item.duration_ms),
+          currentTime: formatSpotifyTime(response.progress_ms),
           progress: Math.round(
-            (data.progress_ms / data.item.duration_ms) * 100
+            (response.progress_ms / response.item.duration_ms) * 100
           ),
-          albumArt: data.item.album.images[0]?.url || defaultAlbumCover,
+          albumArt: response.item.album.images[0]?.url || defaultAlbumCover,
         });
-        setIsSpotifyPlaying(data.is_playing);
+        setIsSpotifyPlaying(response.is_playing);
       } else {
         setCurrentTrack(NO_TRACK_PLAYING);
         setIsSpotifyPlaying(false);
       }
-    } catch (error) {
-      console.error("Error getting current playback:", error);
-    }
-  };
+    });
+  }, [accessToken]);
 
   useEffect(() => {
     if (accessToken) {
       getCurrentPlayback();
       playbackIntervalRef.current = setInterval(getCurrentPlayback, 1000);
+    } else {
+      clearInterval(playbackIntervalRef.current);
     }
     return () => clearInterval(playbackIntervalRef.current);
-  }, [accessToken, spotifyAPICall]);
+  }, [accessToken, getCurrentPlayback]);
 
-
-  const playFromPlaylist = async (playlistId) => {
-    if (!playlistId || !accessToken) return;
-
-    await spotifyAPICall('/me/player/shuffle?state=true', 'PUT');
-
-    await spotifyAPICall('/me/player/play', 'PUT', {context_uri: `spotify:playlist:${playlistId}`});
-
-    setTimeout(getCurrentPlayback, 500);
-  }
+  const sendMessageWithCallback = (command) => {
+    chrome.runtime.sendMessage({ command }, () => {
+      setTimeout(getCurrentPlayback, 500);
+    });
+  };
 
   const togglePlayPause = async () => {
     if (!accessToken) {
       login();
       return;
     }
-    const endpoint = isSpotifyPlaying ? "/me/player/pause" : "/me/player/play";
-    await spotifyAPICall(endpoint, "PUT");
-    setTimeout(getCurrentPlayback, 500);
+    sendMessageWithCallback(isSpotifyPlaying ? "pauseSpotify" : "playSpotify");
   };
 
   const nextTrack = async () => {
     if (!accessToken) return;
-    await spotifyAPICall("/me/player/next", "POST");
-    setTimeout(getCurrentPlayback, 500);
+    sendMessageWithCallback("nextTrack");
   };
 
   const previousTrack = async () => {
     if (!accessToken) return;
-    await spotifyAPICall("/me/player/previous", "POST");
-    setTimeout(getCurrentPlayback, 500);
-  };
-
-  const pauseMusic = () => {
-    if (isSpotifyPlaying) {
-      spotifyAPICall("/me/player/pause", "PUT");
-    }
-  };
-
-  const resumeMusic = () => {
-    spotifyAPICall("/me/player/play", "PUT");
+    sendMessageWithCallback("previousTrack");
   };
 
   return {
@@ -109,9 +95,6 @@ export const useSpotifyPlayback = () => {
       togglePlayPause,
       nextTrack,
       previousTrack,
-      pauseMusic,
-      resumeMusic,
-      playFromPlaylist,
     },
   };
 };

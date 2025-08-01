@@ -572,6 +572,7 @@ body {
 .spotify-connection {
   display: flex;
   justify-content: center;
+  margin-top: -20px;  
 }
 
 .connected-state {
@@ -748,6 +749,7 @@ body {
   font-family: Poppins, sans-serif;
   font-size: 14px;
   color: #ccc;
+  margin-top: 20px;
 }
 
 .playlist-selector select {

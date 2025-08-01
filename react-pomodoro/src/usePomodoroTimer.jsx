@@ -1,6 +1,5 @@
 // huy8n/pomodoro/Pomodoro-feature-extension/react-pomodoro/src/usePomodoroTimer.jsx
 import { useState, useEffect, useCallback } from "react";
-import { DEFAULT_TIMER_DURATION } from "./constants";
 
 export const usePomodoroTimer = () => {
   const [timeLeft, setTimeLeft] = useState(null); // Start as null

@@ -5,10 +5,9 @@ import SwitchPlaylist from "./SwitchPlaylist";
 
 
 function Settings({ onSettingChange, onCloseSettings, settings }) {
-  // Hooks - using React state instead of localStorage for Claude environment
+  // Getting current settings
   const {playSoundOnEnd, pauseMusicOnPause} = settings;
-
-  //Hook for spotify auth
+  //Get hooks from spotifyAuth
   const { accessToken, error, isLoading, login, logout } =
     useSpotifyAuth();
 
@@ -22,12 +21,11 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
   };
 
   const handleToggle = (settingKey) => {
-    // Create the new, updated settings object
     const newSettings = {
-      ...settings, // 1. Copy all current settings
-      [settingKey]: !settings[settingKey], // 2. Flip the value of the one that was clicked
+      ...settings, // copy all current settings
+      [settingKey]: !settings[settingKey], // Flip the value of the one that was clicked
     };
-    // 3. Call the function from App.jsx to update the master state
+    // Call the function from App.jsx to update the master state
     onSettingChange(newSettings);
   };
 

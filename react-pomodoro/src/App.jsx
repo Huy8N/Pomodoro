@@ -4,7 +4,9 @@ import { useCallback, useState, useEffect} from "react";
 import "./App.css";
 
 function App() {
+  // Set initial view on installed
   const [currentView, setCurrentView] = useState("pomodoro");
+  // default settings on installed
   const [settings, setSettings] = useState({
     playSoundOnEnd: false,
     pauseMusicOnPause: false,
@@ -12,6 +14,7 @@ function App() {
     breakPlaylistId: null,
   });
 
+  // Update settings
   useEffect(() => {
     chrome.storage.local.get(
       [
