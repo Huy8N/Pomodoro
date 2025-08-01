@@ -51,7 +51,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
       }
     } else {
       if (isSpotifyPlaying) {
-        spotifyControls.togglePlayPause();
+        spotifyControls.togglePlayPause(); // Toggle
         setWasPlayingBeforePause(true);
       }
     }
