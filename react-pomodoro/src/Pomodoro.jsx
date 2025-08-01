@@ -65,38 +65,11 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     spotifyControls,
   ]);
 
-  //audio to play upon timer expiration
-  const audioRef = useAudioAlert("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-
-  // Show timer is up banner, play audio, start break playlist function
-  const handleTimerEnd = useCallback(() => {
-    setShowTimerUp(true);
-    if (settings.playSoundOnEnd) {
-      audioRef.current.play();
-    }
-    spotifyControls.playFromPlaylist(settings.breakPlaylistId);
-  }, [settings.playSoundOnEnd, settings.breakPlaylistId, spotifyControls, audioRef]);
-
-  useTimerEndPopup({
-    timeLeft,
-    isRunning,
-    onShow: handleTimerEnd
-  });
-
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
     setActivePreset(index);
   };
-
-  // close times up banner and reset audio
-  const handleClosePopup = () => {
-    setShowTimerUp(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-  };
-
+  
   return (
     <>
     <div className="app-container">
