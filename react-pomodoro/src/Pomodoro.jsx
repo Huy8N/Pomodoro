@@ -6,8 +6,6 @@ import { SpotifyBanner } from "./SpotifyBanner";
 import { TimerControls } from "./TimerControls";
 import { TimerSelectionMenu } from "./TimeSelectionMenu";
 import { TimerUpPopup } from "./TimerUpPopup";
-import { useTimerEndPopup } from "./useTimerEndPopup";
-import { useAudioAlert } from "./useAudioAlert";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
 
@@ -69,7 +67,7 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     setTimer(seconds);
     setActivePreset(index);
   };
-  
+
   return (
     <>
     <div className="app-container">
