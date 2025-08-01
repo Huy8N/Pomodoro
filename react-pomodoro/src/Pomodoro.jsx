@@ -6,8 +6,6 @@ import { SpotifyBanner } from "./SpotifyBanner";
 import { TimerControls } from "./TimerControls";
 import { TimerSelectionMenu } from "./TimeSelectionMenu";
 import { TimerUpPopup } from "./TimerUpPopup";
-import { useTimerEndPopup } from "./useTimerEndPopup";
-import { useAudioAlert } from "./useAudioAlert";
 
 function Pomodoro({ settings = {}, onOpenSettings }) {
 
@@ -48,13 +46,13 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     //if clock is running, continue music
     if (isRunning) {
       if (wasPlayingBeforePause) {
-        spotifyControls.resumeMusic();
+        spotifyControls.togglePlayPause();
         setWasPlayingBeforePause(false);
       }
     } else {
       if (isSpotifyPlaying) {
+        spotifyControls.togglePlayPause(); // Toggle
         setWasPlayingBeforePause(true);
-        spotifyControls.pauseMusic();
       }
     }
   }, [
@@ -65,36 +63,9 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     spotifyControls,
   ]);
 
-  //audio to play upon timer expiration
-  const audioRef = useAudioAlert("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
-
-  // Show timer is up banner, play audio, start break playlist function
-  const handleTimerEnd = useCallback(() => {
-    setShowTimerUp(true);
-    if (settings.playSoundOnEnd) {
-      audioRef.current.play();
-    }
-    spotifyControls.playFromPlaylist(settings.breakPlaylistId);
-  }, [settings.playSoundOnEnd, settings.breakPlaylistId, spotifyControls, audioRef]);
-
-  useTimerEndPopup({
-    timeLeft,
-    isRunning,
-    onShow: handleTimerEnd
-  });
-
   const selectPreset = (seconds, index) => {
     setTimer(seconds);
     setActivePreset(index);
-  };
-
-  // close times up banner and reset audio
-  const handleClosePopup = () => {
-    setShowTimerUp(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
   };
 
   return (

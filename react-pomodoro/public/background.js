@@ -1,10 +1,9 @@
 importScripts("vendor/axios.min.js");
 
-// --- Constants ---
 const SPOTIFY_CLIENT_ID = "889db36d555d41f1bcc56f22d1e2210c";
 const TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token";
 
-// --- PKCE Helpers ---
+// Auth flow with PKCE (Proof Key for Code Exchange)
 const generateRandomString = (length) => {
   const possible =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -25,7 +24,7 @@ const base64encode = (input) => {
     .replace(/\//g, "_");
 };
 
-// --- Spotify API ---
+// Function to make API calls to Spotify
 async function callSpotifyAPI(endpoint, method = "GET", body = null) {
   const { spotify_access_token: token } = await chrome.storage.local.get(
     "spotify_access_token"
@@ -59,23 +58,23 @@ async function callSpotifyAPI(endpoint, method = "GET", body = null) {
       body: body ? JSON.stringify(body) : null,
     });
 
-    // ─── 1. Auto-refresh an expired token ──────────────────────────────
+    // Referesh if token is expired
     if (response.status === 401) {
       console.log("Spotify token expired. Refreshing…");
       await refreshToken();
-      return callSpotifyAPI(endpoint, method, body); // retry once
+      return callSpotifyAPI(endpoint, method, body);
     }
 
-    // ─── 2. Bubble up true HTTP errors (4xx/5xx) ───────────────────────
+    // Log any non-2xx responses
     if (!response.ok) {
       const errorText = await response.text(); // may itself be empty
       throw new Error(`Spotify API Error ${response.status}: ${errorText}`);
     }
 
-    // ─── 3. Short-circuit “no content” replies ─────────────────────────
+    // no content to return
     if (response.status === 202 || response.status === 204) return null;
 
-    // ─── 4. Only parse JSON when there really *is* JSON ────────────────
+    // Parse JSON response
     const contentType = response.headers.get("content-type") || "";
     if (!contentType.startsWith("application/json")) {
       // some 200s send an empty body with a text/plain header
@@ -85,11 +84,11 @@ async function callSpotifyAPI(endpoint, method = "GET", body = null) {
     return await response.json();
   } catch (err) {
     console.error("Spotify API call failed:", err);
-    throw err; // let callers decide what to do
+    throw err;
   }
 }
 
-// --- Spotify Authentication ---
+// Spotify Authentication Flow
 async function handleLogin() {
   const codeVerifier = generateRandomString(64);
   const hashed = await sha256(codeVerifier);
