@@ -46,13 +46,13 @@ function Pomodoro({ settings = {}, onOpenSettings }) {
     //if clock is running, continue music
     if (isRunning) {
       if (wasPlayingBeforePause) {
-        spotifyControls.resumeMusic();
+        spotifyControls.togglePlayPause();
         setWasPlayingBeforePause(false);
       }
     } else {
       if (isSpotifyPlaying) {
         setWasPlayingBeforePause(true);
-        spotifyControls.pauseMusic();
+        spotifyControls.togglePlayPause();
       }
     }
   }, [
