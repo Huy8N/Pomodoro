@@ -25,7 +25,7 @@ export const useSpotifyAuth = () => {
   useEffect(() => {
     syncState();
     // Set up a listener for broadcasts from the background script
-    const handleMessage = (message, sender, sendResponse) => {
+    const handleMessage = (message, _sender, _sendResponse) => {
       if (message.command === "updateState") {
         setAccessToken(message.state.spotify_access_token || null);
       }

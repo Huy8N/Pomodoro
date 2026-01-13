@@ -56,7 +56,9 @@ export const useSpotifyPlayback = () => {
   useEffect(() => {
     if (accessToken) {
       getCurrentPlayback();
-      playbackIntervalRef.current = setInterval(getCurrentPlayback, 1000);
+      // Poll every 3 seconds instead of 1 - reduces API calls by 66%
+      // while maintaining responsive UX
+      playbackIntervalRef.current = setInterval(getCurrentPlayback, 3000);
     } else {
       clearInterval(playbackIntervalRef.current);
     }
@@ -79,12 +81,12 @@ export const useSpotifyPlayback = () => {
 
 
   const pauseMusic = async () => {
-    if (!token) return;
+    if (!accessToken) return;
     sendMessageWithCallback("pauseSpotify");
   }
 
   const resumeMusic = async () => {
-    if (!token) {
+    if (!accessToken) {
       login();
       return;
     }
@@ -103,7 +105,6 @@ export const useSpotifyPlayback = () => {
 
   const playFromPlaylist = async (playlistId) => {
     sendMessageWithCallback("playFromPlaylist", {playlistId});
-    console.log("⏯️ playFromPlaylist called with", playlistId);
   }
   return {
     currentTrack,
