@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PomoSpot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A unique pomodoro timer with spotify intergration",
   "icons": {
     "48": "PomoSpot48.png",
