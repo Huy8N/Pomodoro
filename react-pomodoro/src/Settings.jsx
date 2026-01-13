@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useSpotifyAuth } from "./useSpotifyAuth";
 import spotifyIcon from "./assets/spotifyIcon.png";
 import SwitchPlaylist from "./SwitchPlaylist";
@@ -6,9 +5,9 @@ import SwitchPlaylist from "./SwitchPlaylist";
 
 function Settings({ onSettingChange, onCloseSettings, settings }) {
   // Getting current settings
-  const {playSoundOnEnd, pauseMusicOnPause} = settings;
+  const { pauseMusicOnPause } = settings;
   //Get hooks from spotifyAuth
-  const { accessToken, error, isLoading, login, logout } =
+  const { accessToken, isLoading, login, logout } =
     useSpotifyAuth();
 
   //Handling login and logout
@@ -52,13 +51,13 @@ function Settings({ onSettingChange, onCloseSettings, settings }) {
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
-            stroke-width="1.5"
+            strokeWidth="1.5"
             stroke="currentColor"
-            class="size-6"
+            className="size-6"
           >
             <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
             />
           </svg>

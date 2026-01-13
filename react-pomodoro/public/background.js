@@ -197,22 +197,51 @@ async function handleLogout() {
 }
 
 // --- Timer Logic ---
+// In-memory state for fast access (storage is only for persistence)
+let timerState = {
+  timeLeft: 1500,
+  duration: 1500,
+  isRunning: false,
+};
 let countdownIntervalId = null;
+let tickCount = 0; // Track ticks for periodic storage sync
+
+// Initialize in-memory state from storage (called on service worker wake)
+async function initTimerState() {
+  const stored = await chrome.storage.local.get(["timeLeft", "duration", "isRunning"]);
+  timerState = {
+    timeLeft: stored.timeLeft ?? 1500,
+    duration: stored.duration ?? 1500,
+    isRunning: stored.isRunning ?? false,
+  };
+
+  // Resume countdown if timer was running when service worker went to sleep
+  if (timerState.isRunning && !countdownIntervalId) {
+    countdownIntervalId = setInterval(updateCountdown, 1000);
+  }
+}
+
+// Sync in-memory state to storage (for crash recovery)
+async function syncToStorage() {
+  await chrome.storage.local.set({
+    timeLeft: timerState.timeLeft,
+    duration: timerState.duration,
+    isRunning: timerState.isRunning,
+  });
+}
 
 async function startTimer() {
-  const { isRunning, timeLeft, duration } = await chrome.storage.local.get([
-    "isRunning",
-    "timeLeft",
-    "duration",
-  ]);
-  if (isRunning) return;
+  if (timerState.isRunning) return;
 
-  await chrome.storage.local.set({ isRunning: true });
+  timerState.isRunning = true;
+  await syncToStorage();
+
   chrome.alarms.create("pomodoroTimer", {
-    delayInMinutes: (timeLeft || duration) / 60,
+    delayInMinutes: timerState.timeLeft / 60,
   });
 
   if (!countdownIntervalId) {
+    tickCount = 0;
     countdownIntervalId = setInterval(updateCountdown, 1000);
   }
   await callSpotifyAPI("/me/player/play", "PUT");
@@ -220,7 +249,8 @@ async function startTimer() {
 }
 
 async function pauseTimer() {
-  await chrome.storage.local.set({ isRunning: false });
+  timerState.isRunning = false;
+  await syncToStorage(); // Persist current time when pausing
   await chrome.alarms.clear("pomodoroTimer");
 
   if (countdownIntervalId) {
@@ -231,8 +261,9 @@ async function pauseTimer() {
 }
 
 async function resetTimer() {
-  const { duration } = await chrome.storage.local.get("duration");
-  await chrome.storage.local.set({ isRunning: false, timeLeft: duration });
+  timerState.isRunning = false;
+  timerState.timeLeft = timerState.duration;
+  await syncToStorage();
   await chrome.alarms.clear("pomodoroTimer");
 
   if (countdownIntervalId) {
@@ -243,41 +274,46 @@ async function resetTimer() {
 }
 
 async function setTimer(newDuration) {
-  await chrome.storage.local.set({
-    duration: newDuration,
-    timeLeft: newDuration,
-  });
+  timerState.duration = newDuration;
+  timerState.timeLeft = newDuration;
+  await syncToStorage();
   broadcastState();
 }
 
 async function updateCountdown() {
-  const { isRunning, timeLeft } = await chrome.storage.local.get([
-    "isRunning",
-    "timeLeft",
-  ]);
-  if (!isRunning) {
+  if (!timerState.isRunning) {
     clearInterval(countdownIntervalId);
     countdownIntervalId = null;
     return;
   }
 
-  const newTimeLeft = timeLeft - 1;
-  if (newTimeLeft >= 0) {
-    await chrome.storage.local.set({ timeLeft: newTimeLeft });
+  timerState.timeLeft -= 1;
+  tickCount += 1;
+
+  if (timerState.timeLeft >= 0) {
+    // Only sync to storage every 10 seconds (reduces I/O by 90%)
+    if (tickCount % 10 === 0) {
+      await syncToStorage();
+    }
     broadcastState();
   } else {
-    // Timer finished, handle alarm logic
-    await chrome.storage.local.set({ isRunning: false });
+    // Timer finished
+    timerState.isRunning = false;
+    timerState.timeLeft = timerState.duration;
+    await syncToStorage();
     clearInterval(countdownIntervalId);
     countdownIntervalId = null;
   }
 }
 
+// Initialize state when service worker starts
+initTimerState();
+
 // --- Event Listeners ---
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.set({
-    timeLeft: 5, // 25 minutes
-    duration: 1500,
+    timeLeft: 1500,   // 25 minutes
+    duration: 1500,   // 25 minutes
     isRunning: false,
   });
 });
@@ -346,17 +382,22 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           sendResponse({ status: "ok" });
           break;
         case "getState":
-          const state = await chrome.storage.local.get(null);
-          sendResponse(state);
+          // Return timer state from memory (faster than storage read)
+          sendResponse({
+            timeLeft: timerState.timeLeft,
+            isRunning: timerState.isRunning,
+            duration: timerState.duration,
+          });
           break;
 
         // Spotify Player Commands
-        case "getCurrentPlayback":
+        case "getCurrentPlayback": {
           const playbackState = await callSpotifyAPI(
             "/me/player/currently-playing"
           );
           sendResponse(playbackState);
           break;
+        }
         case "playSpotify":
           await callSpotifyAPI("/me/player/play", "PUT");
           sendResponse({ status: "ok" });
@@ -373,20 +414,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           await callSpotifyAPI("/me/player/previous", "POST");
           sendResponse({ status: "ok" });
           break;
-        case "getPlaylists":
-          response = await callSpotifyAPI("/me/playlists");
-          if (response && response.items) {
-            sendResponse(response);
+        case "getPlaylists": {
+          const playlistResponse = await callSpotifyAPI("/me/playlists");
+          if (playlistResponse && playlistResponse.items) {
+            sendResponse(playlistResponse);
           } else {
             console.log("Unable to fetch playlists");
             sendResponse({ status: "unable to fetch playlist" });
           }
           break;
+        }
         case "playFromPlaylist":
-          console.log(
-            "▶️ background received playFromPlaylist for",
-            request.playlistId
-          );
           await callSpotifyAPI("/me/player/play", "PUT", {
             context_uri: `spotify:playlist:${request.playlistId}`,
           });
@@ -406,9 +444,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-async function broadcastState() {
-  const state = await chrome.storage.local.get(null);
-  // This sends to the popup
+function broadcastState() {
+  // Only send timer-relevant fields from in-memory state (no storage read!)
+  const state = {
+    timeLeft: timerState.timeLeft,
+    isRunning: timerState.isRunning,
+    duration: timerState.duration,
+  };
   chrome.runtime.sendMessage({ command: "updateState", state }).catch((err) => {
     if (err.message.includes("Could not establish connection")) {
       // This is normal if the popup is not open.
